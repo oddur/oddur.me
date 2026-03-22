@@ -1,0 +1,22 @@
+version: "3"
+
+tasks:
+  dev:
+    desc: Start Hugo development server with drafts
+    cmd: hugo server --buildDrafts
+
+  build:
+    desc: Build the site for production
+    cmd: hugo --minify
+
+  new:
+    desc: "Create a new post (usage: task new -- my-post-title)"
+    cmd: "hugo new content posts/{{ .CLI_ARGS }}.md"
+
+  clean:
+    desc: Remove generated files
+    cmd: rm -rf public/ resources/
+
+  theme-update:
+    desc: Update PaperMod theme to latest
+    cmd: git submodule update --remote themes/PaperMod
