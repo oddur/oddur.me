@@ -31,6 +31,14 @@ theme = 'PaperMod'
     name = 'github'
     url = 'https://github.com/oddur'
 
+  [[params.socialIcons]]
+    name = 'linkedin'
+    url = 'https://www.linkedin.com/in/magnusson/'
+
+  [[params.socialIcons]]
+    name = 'x'
+    url = 'https://x.com/oddur'
+
 [menu]
   [[menu.main]]
     identifier = 'posts'
