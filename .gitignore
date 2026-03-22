@@ -1,0 +1,9 @@
+# Hugo build output
+public/
+resources/
+
+# Devbox
+.devbox/
+
+# OS
+.DS_Store
