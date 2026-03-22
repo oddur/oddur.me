@@ -1,4 +1,45 @@
-baseURL = 'https://example.org/'
+baseURL = 'https://oddur.me/'
 languageCode = 'en-us'
-title = 'My New Hugo Site'
+title = 'Oddur Magnusson'
 theme = 'PaperMod'
+
+[params]
+  defaultTheme = 'auto'
+  showReadingTime = true
+  showShareButtons = false
+  showPostNavLinks = true
+  showBreadCrumbs = true
+  showCodeCopyButtons = true
+
+  [params.profileMode]
+    enabled = true
+    title = 'Oddur Magnusson'
+    subtitle = ''
+    imageUrl = ''
+    imageWidth = 120
+    imageHeight = 120
+
+    [[params.profileMode.buttons]]
+      name = 'Posts'
+      url = '/posts/'
+
+    [[params.profileMode.buttons]]
+      name = 'About'
+      url = '/about/'
+
+  [[params.socialIcons]]
+    name = 'github'
+    url = 'https://github.com/oddur'
+
+[menu]
+  [[menu.main]]
+    identifier = 'posts'
+    name = 'Posts'
+    url = '/posts/'
+    weight = 10
+
+  [[menu.main]]
+    identifier = 'about'
+    name = 'About'
+    url = '/about/'
+    weight = 20
