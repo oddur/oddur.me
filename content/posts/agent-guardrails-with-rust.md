@@ -2,6 +2,8 @@
 date = '2026-03-22T11:41:03+01:00'
 draft = false
 title = 'Agent Guardrails with Rust'
+ShowToc = true
+TocOpen = true
 +++
 I've been spending most of my time in agent-driven development lately, and the biggest insight I keep coming back to is this: the person in the driving seat matters more, not less.
 

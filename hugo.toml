@@ -29,6 +29,10 @@ googleAnalytics = 'G-7CFN4T27KD'
     name = 'x'
     url = 'https://x.com/oddur'
 
+  [[params.socialIcons]]
+    name = 'rss'
+    url = '/index.xml'
+
 [menu]
   [[menu.main]]
     identifier = 'posts'
