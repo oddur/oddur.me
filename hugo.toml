@@ -41,7 +41,13 @@ googleAnalytics = 'G-7CFN4T27KD'
     weight = 10
 
   [[menu.main]]
+    identifier = 'projects'
+    name = 'Projects'
+    url = '/projects/'
+    weight = 20
+
+  [[menu.main]]
     identifier = 'about'
     name = 'About'
     url = '/about/'
-    weight = 20
+    weight = 30

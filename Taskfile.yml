@@ -3,7 +3,7 @@ version: "3"
 tasks:
   dev:
     desc: Start Hugo development server with drafts
-    cmd: hugo server --buildDrafts
+    cmd: hugo server --buildDrafts --baseURL http://localhost:1313/
 
   build:
     desc: Build the site for production
