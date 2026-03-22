@@ -13,21 +13,9 @@ googleAnalytics = 'G-7CFN4T27KD'
   showBreadCrumbs = true
   showCodeCopyButtons = true
 
-  [params.profileMode]
-    enabled = true
-    title = 'Oddur Magnusson'
-    subtitle = ''
-    imageUrl = ''
-    imageWidth = 120
-    imageHeight = 120
-
-    [[params.profileMode.buttons]]
-      name = 'Posts'
-      url = '/posts/'
-
-    [[params.profileMode.buttons]]
-      name = 'About'
-      url = '/about/'
+  [params.homeInfoParams]
+    Title = 'Oddur Magnusson'
+    Content = ''
 
   [[params.socialIcons]]
     name = 'github'
