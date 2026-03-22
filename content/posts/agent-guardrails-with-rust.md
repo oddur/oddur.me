@@ -17,19 +17,19 @@ That principle is language-agnostic. But language choice determines how far you 
 
 ## Table Stakes: Testing, Linting, Formatting, CI
 
-**Testing.** TDD is non-negotiable. Unit tests, integration tests, end-to-end tests. All three, running constantly as part of the agent's workflow. Previously TDD was often aspirational in practice, just because of the extra effort involved. With agents, that effort is effectively free, so there's no excuse anymore not to work this way. Rust makes testing a first-class language concept with inline unit tests and parallel execution by default.
+**Testing.** TDD is non-negotiable. Unit tests, integration tests, end-to-end tests. All three, running constantly as part of the agent's workflow. Previously TDD was often aspirational in practice, just because of the extra effort involved. With agents, that effort is effectively free, so there's no excuse anymore not to work this way. Rust makes testing a first-class language concept with [inline unit tests](https://doc.rust-lang.org/book/ch11-01-writing-tests.html) and parallel execution by default.
 
-**Linting.** Run the strictest configuration your language offers. In Rust, that's Clippy in pedantic mode. Feed your agent the most aggressive linting rules available. The more constraints you give it, the fewer bad decisions it makes.
+**Linting.** Run the strictest configuration your language offers. In Rust, that's [Clippy](https://doc.rust-lang.org/clippy/) in pedantic mode. Feed your agent the most aggressive linting rules available. The more constraints you give it, the fewer bad decisions it makes.
 
-**Formatting.** Languages like Go and Rust killed off the bikeshed arguments about formatting by making it part of the toolchain. For agents, canonical formatting means less noise in diffs.
+**Formatting.** Languages like Go and Rust killed off the bikeshed arguments about formatting by making it [part of the toolchain](https://github.com/rust-lang/rustfmt). For agents, canonical formatting means less noise in diffs.
 
-**Pre-commit hooks: the final gate.** This is the last step in the edit-compile-test loop, and it's the one that guarantees the agent never delivers work that doesn't pass your quality gates. If any step fails, the commit is rejected. The agent doesn't get to ship half-finished work. In Rust, that's `fmt`, `clippy`, `cargo check`, and `cargo test`. Add [TruffleHog](https://github.com/trufflesecurity/trufflehog) to scan for secrets. Agents are especially prone to hardcoding credentials, API keys, and tokens, and you never want those committed. Add dependency auditing in CI too ([cargo-deny](https://github.com/EmbarkStudios/cargo-deny) for Rust) for license checks, vulnerability scanning, and banned dependency detection.
+**Pre-commit hooks: the final gate.** This is the last step in the edit-compile-test loop, and it's the one that guarantees the agent never delivers work that doesn't pass your quality gates. If any step fails, the commit is rejected. The agent doesn't get to ship half-finished work. In Rust, that's `fmt`, `clippy`, [`cargo check`](https://doc.rust-lang.org/cargo/commands/cargo-check.html), and `cargo test`. Add [TruffleHog](https://github.com/trufflesecurity/trufflehog) to scan for secrets. Agents are especially prone to hardcoding credentials, API keys, and tokens, and you never want those committed. Add dependency auditing in CI too ([cargo-deny](https://github.com/EmbarkStudios/cargo-deny) for Rust) for license checks, vulnerability scanning, and banned dependency detection.
 
 The key is trying to front load checks as much as possible, so they get incorporated into the agent's inner loop. Once it hits your CI checks it should have passed as many of those checks as possible locally.
 
 ## Where Rust Starts to Pull Ahead: The Borrow Checker
 
-The borrow checker gives you compile-time guarantees about ownership, lifetimes, and data race prevention. Code that passes it has properties you can't get in most languages regardless of how many tests you write: no data races, no use-after-free, no dangling references. These hold whether the agent got it right on the first pass or the fifth.
+The borrow checker gives you compile-time guarantees about [ownership, lifetimes, and data race prevention](https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html). Code that passes it has properties you can't get in most languages regardless of how many tests you write: no data races, no use-after-free, no dangling references. These hold whether the agent got it right on the first pass or the fifth.
 
 What makes this particularly useful for agents is that every borrow checker error is specific, deterministic, and points to exactly what needs to change. It's structured feedback that keeps the agent on track throughout the edit-compile cycle.
 
@@ -37,13 +37,13 @@ What makes this particularly useful for agents is that every borrow checker erro
 
 ### Enums and Exhaustive Matching
 
-Rust requires every variant of an enum to be handled in match statements. Add a new variant, and the compiler flags every location in the codebase where that case isn't covered.
+Rust requires every variant of an [enum](https://doc.rust-lang.org/book/ch06-00-enums.html) to be handled in [match statements](https://doc.rust-lang.org/book/ch06-02-match.html). Add a new variant, and the compiler flags every location in the codebase where that case isn't covered.
 
 Say you have a `PaymentStatus` enum with `Pending`, `Completed`, and `Failed`. Your codebase has match statements handling those three cases in your API responses, your notification logic, your database updates, your audit logging. Now you add a `Refunded` variant. In a dynamically typed language, that's a grep and a prayer. In Rust, the compiler immediately gives you a list of every match statement that doesn't handle `Refunded`. The agent gets a precise, actionable list of locations to update, and the code won't compile until every one of them is addressed.
 
 ### Newtypes
 
-Instead of passing raw `String` and `i32` around, wrap them in semantically rich newtypes. A newtype is a distinct type that wraps a primitive, so the compiler treats it as fundamentally different from every other string or integer, even though the underlying data is the same.
+Instead of passing raw `String` and `i32` around, wrap them in semantically rich [newtypes](https://doc.rust-lang.org/book/ch20-03-advanced-types.html#using-the-newtype-pattern-for-type-safety-and-abstraction). A newtype is a distinct type that wraps a primitive, so the compiler treats it as fundamentally different from every other string or integer, even though the underlying data is the same.
 
 This catches real bugs at compile time. I've seen an agent mix up OAuth refresh tokens and JWT tokens in a token refresh flow. Both are strings, but semantically they're completely different. With newtypes, `JwtToken` and `RefreshToken` are distinct types and the compiler won't let you pass one where the other is expected. That bug never makes it to runtime.
 
@@ -78,7 +78,7 @@ impl DatabasePool<Ready> {
 
 There are a few things going on here. Each state gets its own `impl` block, so `.query()` simply doesn't exist on `DatabasePool<Uninitialized>`. If an agent tries to call it, the compiler rejects it as a compile error, not a runtime panic. And `initialize` takes `self` by value, consuming the `Uninitialized` version and returning a `Ready` one. After that call, the old value is gone. You can't accidentally keep using an uninitialized pool.
 
-The states are separate structs rather than enum variants because that's what keeps this at compile time. An enum would mean the state is determined at runtime and you'd be back to matching on variants. With marker structs and `PhantomData`, the state parameter exists only for the type checker and compiles away to nothing.
+The states are separate structs rather than enum variants because that's what keeps this at compile time. An enum would mean the state is determined at runtime and you'd be back to matching on variants. With marker structs and [`PhantomData`](https://doc.rust-lang.org/std/marker/struct.PhantomData.html), the state parameter exists only for the type checker and compiles away to nothing.
 
 Construction is controlled through factory methods and state transitions. There's no way to conjure a `DatabasePool<Ready>` out of thin air, you have to go through `.initialize()`.
 
@@ -92,4 +92,4 @@ The obvious tradeoff is compile times. Rust compiles slowly, and for an agent it
 
 An agent-built codebase without deterministic guarantees is a half-baked product. If there's no compile-time type safety, no exhaustive matching, no static analysis gates, you're shipping the output of a probabilistic system with no verification that it's correct. Languages like TypeScript with strict mode can go a long way here, and for many projects that's enough.
 
-Rust lets you go further. The borrow checker, ownership semantics, newtypes, typestates, and fearless concurrency push more of your application logic into compile-time checks, turning runtime errors into impossible states. The agent ends up generating code that the compiler has verified is correct, not just code that happens to work.
+Rust lets you go further. The borrow checker, ownership semantics, newtypes, typestates, and [fearless concurrency](https://doc.rust-lang.org/book/ch16-00-concurrency.html) push more of your application logic into compile-time checks, turning runtime errors into impossible states. The agent ends up generating code that the compiler has verified is correct, not just code that happens to work.
