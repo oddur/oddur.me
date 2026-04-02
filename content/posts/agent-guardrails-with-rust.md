@@ -2,6 +2,8 @@
 date = '2026-03-22T11:41:03+01:00'
 draft = false
 title = 'Agent Guardrails with Rust'
+description = "How Rust's type system, borrow checker, and toolchain act as deterministic guardrails for agent-generated code."
+tags = ['rust', 'agents', 'type-systems']
 ShowToc = true
 TocOpen = true
 +++

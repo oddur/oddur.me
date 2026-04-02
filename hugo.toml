@@ -7,6 +7,11 @@ googleAnalytics = 'G-7CFN4T27KD'
 [params]
   env = 'production'
   defaultTheme = 'auto'
+  description = 'Personal site of Oddur Magnusson'
+  author = 'Oddur Magnusson'
+
+  [params.schema]
+    publisherType = 'Person'
   showReadingTime = true
   showShareButtons = false
   showPostNavLinks = true

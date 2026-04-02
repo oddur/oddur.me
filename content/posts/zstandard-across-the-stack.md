@@ -2,6 +2,8 @@
 date = '2026-04-02T12:15:48+02:00'
 draft = false
 title = 'Zstandard Across the Stack'
+description = 'How we used zstd with custom dictionaries to compress real-time game data, patch game updates, and speed up downloads at Seed.'
+tags = ['compression', 'zstd', 'gamedev']
 ShowToc = true
 TocOpen = true
 +++
