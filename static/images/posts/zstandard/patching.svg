@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420">
+  <style>
+    text { font-family: system-ui, -apple-system, sans-serif; }
+    .title { font-size: 14px; font-weight: 600; fill: #e2e2e2; }
+    .label { font-size: 11px; fill: #a0a0a0; }
+    .small { font-size: 10px; fill: #888; }
+    .result { font-size: 13px; font-weight: 600; }
+    .box { rx: 3; ry: 3; }
+
+    /* Old version blocks */
+    .old-block { opacity: 0; }
+    .old-block:nth-child(n) { animation: fadeIn 0.2s calc(0.3s + var(--i) * 0.08s) forwards; }
+
+    /* New version blocks */
+    .new-block { opacity: 0; }
+    .new-block:nth-child(n) { animation: fadeIn 0.2s calc(1.2s + var(--i) * 0.08s) forwards; }
+
+    /* Match highlights */
+    .match-line { opacity: 0; stroke: #4ade80; stroke-width: 1; stroke-dasharray: 3,2; }
+    .match-anim-1 { animation: fadeIn 0.4s 2.2s forwards; }
+    .match-anim-2 { animation: fadeIn 0.4s 2.5s forwards; }
+    .match-anim-3 { animation: fadeIn 0.4s 2.8s forwards; }
+    .match-anim-4 { animation: fadeIn 0.4s 3.1s forwards; }
+
+    /* Delta output */
+    .delta-block { opacity: 0; }
+    .delta-anim-1 { animation: fadeIn 0.3s 3.8s forwards; }
+    .delta-anim-2 { animation: fadeIn 0.3s 3.9s forwards; }
+    .delta-anim-3 { animation: fadeIn 0.3s 4.0s forwards; }
+    .delta-anim-4 { animation: fadeIn 0.3s 4.1s forwards; }
+    .delta-anim-5 { animation: fadeIn 0.3s 4.2s forwards; }
+
+    /* Client side */
+    .client-block { opacity: 0; }
+    .client-anim { animation: fadeIn 0.3s 5.2s forwards; }
+
+    /* Arrows */
+    .arrow-fade-1 { opacity: 0; animation: fadeIn 0.3s 3.4s forwards; }
+    .arrow-fade-2 { opacity: 0; animation: fadeIn 0.3s 4.8s forwards; }
+
+    /* Phase labels */
+    .phase { font-size: 12px; font-weight: 600; fill: #c0c0c0; opacity: 0; }
+    .phase-1 { animation: fadeIn 0.4s 0.1s forwards; }
+    .phase-2 { animation: fadeIn 0.4s 2.0s forwards; }
+    .phase-3 { animation: fadeIn 0.4s 3.6s forwards; }
+    .phase-4 { animation: fadeIn 0.4s 5.0s forwards; }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+  </style>
+
+  <rect width="720" height="420" fill="#1a1a2e" rx="8"/>
+
+  <!-- Title -->
+  <text x="360" y="28" text-anchor="middle" class="title">Patching: Old Version as Dictionary</text>
+
+  <!-- PHASE 1: Server has both versions -->
+  <text x="30" y="58" class="phase phase-1">Server</text>
+
+  <!-- Old version (v1) -->
+  <text x="30" y="78" class="label" style="opacity:0; animation: fadeIn 0.3s 0.2s forwards;">v1.0 (old version on player's machine)</text>
+  <g>
+    <rect class="old-block box" style="--i:0" x="30"  y="88" width="52" height="24" fill="#4a7dbd"/>
+    <rect class="old-block box" style="--i:1" x="86"  y="88" width="52" height="24" fill="#3d6a9e"/>
+    <rect class="old-block box" style="--i:2" x="142" y="88" width="52" height="24" fill="#4a7dbd"/>
+    <rect class="old-block box" style="--i:3" x="198" y="88" width="52" height="24" fill="#3d6a9e"/>
+    <rect class="old-block box" style="--i:4" x="254" y="88" width="52" height="24" fill="#4a7dbd"/>
+    <rect class="old-block box" style="--i:5" x="310" y="88" width="52" height="24" fill="#3d6a9e"/>
+    <rect class="old-block box" style="--i:6" x="366" y="88" width="52" height="24" fill="#4a7dbd"/>
+    <rect class="old-block box" style="--i:7" x="422" y="88" width="52" height="24" fill="#3d6a9e"/>
+    <rect class="old-block box" style="--i:8" x="478" y="88" width="52" height="24" fill="#4a7dbd"/>
+    <rect class="old-block box" style="--i:9" x="534" y="88" width="52" height="24" fill="#3d6a9e"/>
+  </g>
+  <text x="30" y="104" class="small" style="fill:#8ab4e0; opacity:0; animation: fadeIn 0.3s 1.0s forwards;">A  B  C  D  E  F  G  H  I  J</text>
+
+  <!-- New version (v2) -->
+  <text x="30" y="140" class="label" style="opacity:0; animation: fadeIn 0.3s 1.1s forwards;">v2.0 (new version to ship)</text>
+  <g>
+    <rect class="new-block box" style="--i:0" x="30"  y="150" width="52" height="24" fill="#4a7dbd"/>
+    <rect class="new-block box" style="--i:1" x="86"  y="150" width="52" height="24" fill="#3d6a9e"/>
+    <rect class="new-block box" style="--i:2" x="142" y="150" width="52" height="24" fill="#e07840"/>
+    <rect class="new-block box" style="--i:3" x="198" y="150" width="52" height="24" fill="#3d6a9e"/>
+    <rect class="new-block box" style="--i:4" x="254" y="150" width="52" height="24" fill="#4a7dbd"/>
+    <rect class="new-block box" style="--i:5" x="310" y="150" width="52" height="24" fill="#e07840"/>
+    <rect class="new-block box" style="--i:6" x="366" y="150" width="52" height="24" fill="#e07840"/>
+    <rect class="new-block box" style="--i:7" x="422" y="150" width="52" height="24" fill="#3d6a9e"/>
+    <rect class="new-block box" style="--i:8" x="478" y="150" width="52" height="24" fill="#4a7dbd"/>
+    <rect class="new-block box" style="--i:9" x="534" y="150" width="52" height="24" fill="#3d6a9e"/>
+  </g>
+  <text x="30" y="166" class="small" style="fill:#8ab4e0; opacity:0; animation: fadeIn 0.3s 2.0s forwards;">A  B  <tspan fill="#f0a070">X</tspan>  D  E  <tspan fill="#f0a070">Y</tspan>  <tspan fill="#f0a070">Z</tspan>  H  I  J</text>
+
+  <!-- Legend -->
+  <rect x="610" y="88" width="14" height="14" fill="#4a7dbd" rx="2" opacity="0" style="animation: fadeIn 0.3s 2.0s forwards;"/>
+  <text x="630" y="99" class="small" style="opacity:0; animation: fadeIn 0.3s 2.0s forwards;">Unchanged</text>
+  <rect x="610" y="108" width="14" height="14" fill="#e07840" rx="2" opacity="0" style="animation: fadeIn 0.3s 2.0s forwards;"/>
+  <text x="630" y="119" class="small" style="opacity:0; animation: fadeIn 0.3s 2.0s forwards;">Changed</text>
+
+  <!-- PHASE 2: Find matches -->
+  <text x="30" y="210" class="phase phase-2">Compress v2.0 using v1.0 as dictionary</text>
+
+  <!-- Match lines connecting same blocks -->
+  <line class="match-line match-anim-1" x1="56" y1="112" x2="56" y2="150"/>
+  <line class="match-line match-anim-1" x1="112" y1="112" x2="112" y2="150"/>
+  <line class="match-line match-anim-2" x1="224" y1="112" x2="224" y2="150"/>
+  <line class="match-line match-anim-2" x1="280" y1="112" x2="280" y2="150"/>
+  <line class="match-line match-anim-3" x1="448" y1="112" x2="448" y2="150"/>
+  <line class="match-line match-anim-3" x1="504" y1="112" x2="504" y2="150"/>
+  <line class="match-line match-anim-4" x1="560" y1="112" x2="560" y2="150"/>
+
+  <!-- Arrow to delta -->
+  <g class="arrow-fade-1">
+    <line x1="300" y1="220" x2="300" y2="250" stroke="#555" stroke-width="1.5"/>
+    <polygon points="295,248 300,258 305,248" fill="#555"/>
+    <text x="315" y="242" class="small">matched blocks become references</text>
+  </g>
+
+  <!-- PHASE 3: Delta output -->
+  <text x="30" y="278" class="phase phase-3">Delta patch (sent to player)</text>
+
+  <g>
+    <rect class="delta-block delta-anim-1 box" x="30"  y="288" width="22" height="24" fill="#2d6a4f"/>
+    <rect class="delta-block delta-anim-2 box" x="56"  y="288" width="36" height="24" fill="#e07840"/>
+    <rect class="delta-block delta-anim-3 box" x="96"  y="288" width="22" height="24" fill="#2d6a4f"/>
+    <rect class="delta-block delta-anim-4 box" x="122" y="288" width="52" height="24" fill="#e07840"/>
+    <rect class="delta-block delta-anim-5 box" x="178" y="288" width="22" height="24" fill="#2d6a4f"/>
+  </g>
+
+  <!-- Delta labels -->
+  <text x="41" y="304" text-anchor="middle" class="small" style="fill:#8fc9a9; opacity:0; animation: fadeIn 0.3s 4.3s forwards;">ref</text>
+  <text x="74" y="304" text-anchor="middle" class="small" style="fill:#f0a070; opacity:0; animation: fadeIn 0.3s 4.3s forwards;">X</text>
+  <text x="107" y="304" text-anchor="middle" class="small" style="fill:#8fc9a9; opacity:0; animation: fadeIn 0.3s 4.3s forwards;">ref</text>
+  <text x="148" y="304" text-anchor="middle" class="small" style="fill:#f0a070; opacity:0; animation: fadeIn 0.3s 4.3s forwards;">Y + Z</text>
+  <text x="189" y="304" text-anchor="middle" class="small" style="fill:#8fc9a9; opacity:0; animation: fadeIn 0.3s 4.3s forwards;">ref</text>
+
+  <!-- Size comparison -->
+  <text x="250" y="298" class="label" style="opacity:0; animation: fadeIn 0.3s 4.4s forwards;">Only changed data + tiny references</text>
+  <text x="250" y="314" class="result" style="opacity:0; animation: fadeIn 0.3s 4.4s forwards;" fill="#4ade80">Scales with amount of change, not total size</text>
+
+  <!-- Arrow to client -->
+  <g class="arrow-fade-2">
+    <line x1="130" y1="318" x2="130" y2="348" stroke="#555" stroke-width="1.5"/>
+    <polygon points="125,346 130,356 135,346" fill="#555"/>
+    <text x="145" y="340" class="small">download delta, decompress with v1.0 as dictionary</text>
+  </g>
+
+  <!-- PHASE 4: Client result -->
+  <text x="30" y="372" class="phase phase-4">Player's machine</text>
+
+  <!-- Reconstructed v2 on client -->
+  <g>
+    <rect class="client-block client-anim box" x="30"  y="382" width="52" height="24" fill="#4a7dbd"/>
+    <rect class="client-block client-anim box" x="86"  y="382" width="52" height="24" fill="#3d6a9e"/>
+    <rect class="client-block client-anim box" x="142" y="382" width="52" height="24" fill="#e07840"/>
+    <rect class="client-block client-anim box" x="198" y="382" width="52" height="24" fill="#3d6a9e"/>
+    <rect class="client-block client-anim box" x="254" y="382" width="52" height="24" fill="#4a7dbd"/>
+    <rect class="client-block client-anim box" x="310" y="382" width="52" height="24" fill="#e07840"/>
+    <rect class="client-block client-anim box" x="366" y="382" width="52" height="24" fill="#e07840"/>
+    <rect class="client-block client-anim box" x="422" y="382" width="52" height="24" fill="#3d6a9e"/>
+    <rect class="client-block client-anim box" x="478" y="382" width="52" height="24" fill="#4a7dbd"/>
+    <rect class="client-block client-anim box" x="534" y="382" width="52" height="24" fill="#3d6a9e"/>
+  </g>
+  <text x="610" y="398" class="label client-block client-anim">v2.0 ✓</text>
+</svg>

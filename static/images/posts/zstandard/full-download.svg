@@ -1,0 +1,200 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380">
+  <style>
+    text { font-family: system-ui, -apple-system, sans-serif; }
+    .title { font-size: 14px; font-weight: 600; fill: #e2e2e2; }
+    .label { font-size: 11px; fill: #a0a0a0; }
+    .small { font-size: 10px; fill: #888; }
+    .result { font-size: 12px; font-weight: 600; }
+    .box { rx: 3; ry: 3; }
+
+    .phase { font-size: 12px; font-weight: 600; fill: #c0c0c0; opacity: 0; }
+    .phase-1 { animation: fadeIn 0.4s 0.1s forwards; }
+    .phase-2 { animation: fadeIn 0.4s 0.1s forwards; }
+
+    /* ZIP: download all chunks */
+    .zip-dl { fill: #4a7dbd; opacity: 0; }
+    .zip-dl-1 { animation: fadeIn 0.3s 0.4s forwards; }
+    .zip-dl-2 { animation: fadeIn 0.3s 0.7s forwards; }
+    .zip-dl-3 { animation: fadeIn 0.3s 1.0s forwards; }
+    .zip-dl-4 { animation: fadeIn 0.3s 1.3s forwards; }
+
+    /* ZIP: reassemble */
+    .zip-asm { fill: #7a5c8a; opacity: 0; }
+    .zip-asm-1 { animation: fadeIn 0.2s 2.0s forwards; }
+    .zip-asm-2 { animation: fadeIn 0.2s 2.1s forwards; }
+    .zip-asm-3 { animation: fadeIn 0.2s 2.2s forwards; }
+    .zip-asm-4 { animation: fadeIn 0.2s 2.3s forwards; }
+
+    /* ZIP: extract */
+    .zip-ext { fill: #2d6a4f; opacity: 0; }
+    .zip-ext-1 { animation: fadeIn 0.2s 3.0s forwards; }
+    .zip-ext-2 { animation: fadeIn 0.2s 3.1s forwards; }
+    .zip-ext-3 { animation: fadeIn 0.2s 3.2s forwards; }
+    .zip-ext-4 { animation: fadeIn 0.2s 3.3s forwards; }
+
+    /* ZSTD: download + extract overlapped */
+    .zstd-dl { fill: #4a7dbd; opacity: 0; }
+    .zstd-dl-1 { animation: fadeIn 0.3s 0.4s forwards; }
+    .zstd-dl-2 { animation: fadeIn 0.3s 0.7s forwards; }
+    .zstd-dl-3 { animation: fadeIn 0.3s 1.0s forwards; }
+    .zstd-dl-4 { animation: fadeIn 0.3s 1.3s forwards; }
+
+    .zstd-ext { fill: #2d6a4f; opacity: 0; }
+    .zstd-ext-1 { animation: fadeIn 0.3s 0.7s forwards; }
+    .zstd-ext-2 { animation: fadeIn 0.3s 1.0s forwards; }
+    .zstd-ext-3 { animation: fadeIn 0.3s 1.3s forwards; }
+    .zstd-ext-4 { animation: fadeIn 0.3s 1.6s forwards; }
+
+    /* Arrows */
+    .arrow-fade { opacity: 0; }
+    .af-1 { animation: fadeIn 0.3s 1.6s forwards; }
+    .af-2 { animation: fadeIn 0.3s 2.6s forwards; }
+
+    /* Time bars */
+    .time-bar { opacity: 0; }
+    .tb-zip { animation: fadeIn 0.5s 3.6s forwards; }
+    .tb-zstd { animation: fadeIn 0.5s 2.0s forwards; }
+
+    /* Result text */
+    .result-zip { opacity: 0; animation: fadeIn 0.4s 3.8s forwards; }
+    .result-zstd { opacity: 0; animation: fadeIn 0.4s 2.2s forwards; }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+  </style>
+
+  <rect width="720" height="380" fill="#1a1a2e" rx="8"/>
+
+  <!-- Divider -->
+  <line x1="360" y1="10" x2="360" y2="370" stroke="#333" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- LEFT: ZIP approach -->
+  <text x="180" y="28" text-anchor="middle" class="title">ZIP</text>
+  <text x="180" y="44" text-anchor="middle" class="small">Index at end of archive</text>
+
+  <!-- Step 1: Download all chunks -->
+  <text x="20" y="72" class="phase phase-1">1. Download all chunks</text>
+  <g>
+    <rect class="zip-dl zip-dl-1 box" x="20"  y="80" width="72" height="28"/>
+    <rect class="zip-dl zip-dl-2 box" x="96"  y="80" width="72" height="28"/>
+    <rect class="zip-dl zip-dl-3 box" x="172" y="80" width="72" height="28"/>
+    <rect class="zip-dl zip-dl-4 box" x="248" y="80" width="72" height="28"/>
+  </g>
+  <text x="56"  y="98" text-anchor="middle" class="small" style="fill:#8ab4e0; opacity:0; animation: fadeIn 0.3s 0.5s forwards;">chunk 1</text>
+  <text x="132" y="98" text-anchor="middle" class="small" style="fill:#8ab4e0; opacity:0; animation: fadeIn 0.3s 0.8s forwards;">chunk 2</text>
+  <text x="208" y="98" text-anchor="middle" class="small" style="fill:#8ab4e0; opacity:0; animation: fadeIn 0.3s 1.1s forwards;">chunk 3</text>
+  <text x="284" y="98" text-anchor="middle" class="small" style="fill:#8ab4e0; opacity:0; animation: fadeIn 0.3s 1.4s forwards;">chunk 4</text>
+
+  <!-- Arrow -->
+  <g class="arrow-fade af-1">
+    <line x1="180" y1="114" x2="180" y2="138" stroke="#555" stroke-width="1.5"/>
+    <polygon points="175,136 180,146 185,136" fill="#555"/>
+    <text x="195" y="132" class="small">wait for all chunks</text>
+  </g>
+
+  <!-- Step 2: Reassemble -->
+  <text x="20" y="158" class="label" style="opacity:0; animation: fadeIn 0.3s 1.8s forwards;">2. Reassemble archive</text>
+  <g>
+    <rect class="zip-asm zip-asm-1 box" x="20"  y="164" width="72" height="24"/>
+    <rect class="zip-asm zip-asm-2 box" x="92"  y="164" width="72" height="24"/>
+    <rect class="zip-asm zip-asm-3 box" x="164" y="164" width="72" height="24"/>
+    <rect class="zip-asm zip-asm-4 box" x="236" y="164" width="72" height="24"/>
+  </g>
+
+  <!-- Arrow -->
+  <g class="arrow-fade af-2">
+    <line x1="180" y1="194" x2="180" y2="218" stroke="#555" stroke-width="1.5"/>
+    <polygon points="175,216 180,226 185,216" fill="#555"/>
+    <text x="195" y="212" class="small">then extract</text>
+  </g>
+
+  <!-- Step 3: Extract -->
+  <text x="20" y="238" class="label" style="opacity:0; animation: fadeIn 0.3s 2.8s forwards;">3. Extract files</text>
+  <g>
+    <rect class="zip-ext zip-ext-1 box" x="20"  y="244" width="72" height="24"/>
+    <rect class="zip-ext zip-ext-2 box" x="96"  y="244" width="72" height="24"/>
+    <rect class="zip-ext zip-ext-3 box" x="172" y="244" width="72" height="24"/>
+    <rect class="zip-ext zip-ext-4 box" x="248" y="244" width="72" height="24"/>
+  </g>
+
+  <!-- Timeline bar -->
+  <text x="20" y="300" class="label time-bar tb-zip">Total time</text>
+  <rect class="time-bar tb-zip box" x="20" y="308" width="300" height="16" fill="#4a7dbd" opacity="0.4"/>
+  <text x="32" y="320" class="small time-bar tb-zip" style="fill:#8ab4e0;">download</text>
+  <rect class="time-bar tb-zip box" x="170" y="308" width="70" height="16" fill="#7a5c8a" opacity="0.6"/>
+  <rect class="time-bar tb-zip box" x="240" y="308" width="80" height="16" fill="#2d6a4f" opacity="0.6"/>
+  <text x="270" y="320" text-anchor="middle" class="small time-bar tb-zip" style="fill:#8fc9a9;">extract</text>
+
+  <text x="180" y="352" text-anchor="middle" class="result result-zip" fill="#e06060">Sequential: download, then extract</text>
+
+
+  <!-- RIGHT: ZSTD approach -->
+  <text x="540" y="28" text-anchor="middle" class="title">tar.zst</text>
+  <text x="540" y="44" text-anchor="middle" class="small">Streaming format, decompress as data arrives</text>
+
+  <!-- Download chunks + extract as they arrive -->
+  <text x="380" y="72" class="phase phase-2">Download and extract simultaneously</text>
+
+  <!-- Chunk 1 download -->
+  <rect class="zstd-dl zstd-dl-1 box" x="380" y="80" width="72" height="28" />
+  <text x="416" y="98" text-anchor="middle" class="small" style="fill:#8ab4e0; opacity:0; animation: fadeIn 0.3s 0.5s forwards;">chunk 1</text>
+
+  <!-- Chunk 1 extract (starts right after chunk 1 downloads) -->
+  <rect class="zstd-ext zstd-ext-1 box" x="380" y="118" width="72" height="24"/>
+  <text x="416" y="134" text-anchor="middle" class="small" style="fill:#8fc9a9; opacity:0; animation: fadeIn 0.3s 0.8s forwards;">extract 1</text>
+
+  <!-- Chunk 2 download (parallel with extract 1) -->
+  <rect class="zstd-dl zstd-dl-2 box" x="456" y="80" width="72" height="28"/>
+  <text x="492" y="98" text-anchor="middle" class="small" style="fill:#8ab4e0; opacity:0; animation: fadeIn 0.3s 0.8s forwards;">chunk 2</text>
+
+  <!-- Chunk 2 extract -->
+  <rect class="zstd-ext zstd-ext-2 box" x="456" y="118" width="72" height="24"/>
+  <text x="492" y="134" text-anchor="middle" class="small" style="fill:#8fc9a9; opacity:0; animation: fadeIn 0.3s 1.1s forwards;">extract 2</text>
+
+  <!-- Chunk 3 download -->
+  <rect class="zstd-dl zstd-dl-3 box" x="532" y="80" width="72" height="28"/>
+  <text x="568" y="98" text-anchor="middle" class="small" style="fill:#8ab4e0; opacity:0; animation: fadeIn 0.3s 1.1s forwards;">chunk 3</text>
+
+  <!-- Chunk 3 extract -->
+  <rect class="zstd-ext zstd-ext-3 box" x="532" y="118" width="72" height="24"/>
+  <text x="568" y="134" text-anchor="middle" class="small" style="fill:#8fc9a9; opacity:0; animation: fadeIn 0.3s 1.4s forwards;">extract 3</text>
+
+  <!-- Chunk 4 download -->
+  <rect class="zstd-dl zstd-dl-4 box" x="608" y="80" width="72" height="28"/>
+  <text x="644" y="98" text-anchor="middle" class="small" style="fill:#8ab4e0; opacity:0; animation: fadeIn 0.3s 1.4s forwards;">chunk 4</text>
+
+  <!-- Chunk 4 extract -->
+  <rect class="zstd-ext zstd-ext-4 box" x="608" y="118" width="72" height="24"/>
+  <text x="644" y="134" text-anchor="middle" class="small" style="fill:#8fc9a9; opacity:0; animation: fadeIn 0.3s 1.7s forwards;">extract 4</text>
+
+  <!-- Overlap arrows -->
+  <g style="opacity:0; animation: fadeIn 0.3s 0.6s forwards;">
+    <line x1="416" y1="108" x2="416" y2="118" stroke="#555" stroke-width="1"/>
+    <polygon points="413,116 416,122 419,116" fill="#555"/>
+  </g>
+  <g style="opacity:0; animation: fadeIn 0.3s 0.9s forwards;">
+    <line x1="492" y1="108" x2="492" y2="118" stroke="#555" stroke-width="1"/>
+    <polygon points="489,116 492,122 495,116" fill="#555"/>
+  </g>
+  <g style="opacity:0; animation: fadeIn 0.3s 1.2s forwards;">
+    <line x1="568" y1="108" x2="568" y2="118" stroke="#555" stroke-width="1"/>
+    <polygon points="565,116 568,122 571,116" fill="#555"/>
+  </g>
+  <g style="opacity:0; animation: fadeIn 0.3s 1.5s forwards;">
+    <line x1="644" y1="108" x2="644" y2="118" stroke="#555" stroke-width="1"/>
+    <polygon points="641,116 644,122 647,116" fill="#555"/>
+  </g>
+
+  <!-- Done indicator -->
+  <text x="380" y="170" class="label" style="opacity:0; animation: fadeIn 0.3s 1.9s forwards;">Files ready as they arrive</text>
+
+  <!-- Timeline bar -->
+  <text x="380" y="300" class="label time-bar tb-zstd">Total time</text>
+  <rect class="time-bar tb-zstd box" x="380" y="308" width="200" height="16" fill="#4a7dbd" opacity="0.4"/>
+  <text x="392" y="320" class="small time-bar tb-zstd" style="fill:#8ab4e0;">download</text>
+  <rect class="time-bar tb-zstd box" x="410" y="308" width="170" height="16" fill="#2d6a4f" opacity="0.4"/>
+  <text x="510" y="320" text-anchor="middle" class="small time-bar tb-zstd" style="fill:#8fc9a9;">extract (overlapped)</text>
+
+  <text x="540" y="352" text-anchor="middle" class="result result-zstd" fill="#4ade80">Pipelined: extract while downloading</text>
+</svg>
