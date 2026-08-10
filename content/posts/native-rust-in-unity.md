@@ -45,7 +45,7 @@ That rewrite is the price of entry, and the restriction follows every helper the
 
 ## The same pointers Burst uses
 
-Burst is fast partly *because* it works on raw pointers into plain native memory, and those pointers are not secret. A `NativeArray` is a block of ordinary memory with a safety wrapper around it, and Burst compiles down to code that reads and writes that block directly by address.
+Burst is fast partly *because* it works on raw pointers into plain native memory. A `NativeArray` is a block of ordinary memory with a safety wrapper around it, and Burst compiles down to code that reads and writes that block directly by address.
 
 C# can pass those same addresses to a native library through P/Invoke. The only requirement is that the data is blittable, the same constraint Burst already puts on anything you hand a job.
 
