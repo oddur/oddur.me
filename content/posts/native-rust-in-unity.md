@@ -102,13 +102,6 @@ The call itself costs tens of nanoseconds. When the work behind it takes microse
 
 One rule applies at this edge: a Rust panic must not reach it, because a panic crossing `extern "C"` aborts the whole player with no Unity error log. Catch it at the boundary with `std::panic::catch_unwind` and turn it into the error code C# already checks.
 
-How you hand the arrays over matters. Declare a parameter as an array and Mono runs its marshaller on every call, which here costs 0.165 milliseconds against a total in the 0.4 to 0.5 range: a third of the budget, decided by a signature. Declare it as a reference to the first element and you pass a single address, the same cost for ten floats or ten million. The newer runtimes recognize blittable arrays and skip the marshaller either way.
-
-```csharp
-static extern int ai_score(float[] needs, ...);   // Mono marshals the array: +0.165 ms per call
-static extern int ai_score(ref float needs, ...); // pins it and passes the address: free
-```
-
 None of this is specific to Rust. Any language that can build a C-compatible library can stand on the other side of the boundary, and C++ works the same way. This post uses Rust because the point of leaving managed code is taking manual control of memory, and Rust lets you do that without a new class of crashes.
 
 It is not a new pattern either. In the browser it is Rust compiled to WebAssembly: JavaScript keeps the orchestration and a compiled module takes the hot loop. That is how Mozilla [sped up its source-map library](https://hacks.mozilla.org/2018/01/oxidizing-source-maps-with-rust-and-webassembly/), how Prime Video [runs its UI engine on low-powered devices](https://www.amazon.science/blog/how-prime-video-updates-its-app-for-more-than-8-000-device-types), and how 1Password [ships its core inside a browser extension](https://1password.com/blog/1password-8-the-story-so-far). The Unity version gets a cheaper boundary, though. WebAssembly runs in its own linear memory, so the JavaScript side usually pays a copy on the way in. P/Invoke hands over addresses in the same address space, and Rust reads the heap in place.
