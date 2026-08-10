@@ -69,7 +69,7 @@ Native.ai_score(ref needs[0], ref chars[0], chars.Length,
                 ref outAction[0], ref outScore[0]);
 ```
 
-You do not need `NativeArray` for this. A plain managed array of blittable values is the same flat block of memory, just on the C# heap. A reference to its first element pins it in place for the duration of the call. Every number in this post comes from ordinary `float[]` and struct arrays crossing the boundary that way. The pointer is only valid until the call returns: hand the addresses over, let Rust finish, read the results out of the same buffers. `NativeArray` earns its place when a buffer has to outlive the call or be shared with a Burst job, not at the boundary itself.
+You do not need `NativeArray` for this. A plain managed array of blittable values is the same flat block of memory, just on the C# heap, and a reference to its first element pins it in place for the duration of the call. Every number in this post comes from ordinary `float[]` and struct arrays crossing the boundary that way.
 
 {{< animsvg src="/images/posts/rust-unity/ffi-boundary.svg" alt="C# passes three addresses across the P/Invoke boundary. The managed heap is drawn as one contiguous block of memory with the needs, scorers and results arrays as ranges inside it, and Rust's three slices each point at the start of their range. Rust writes the results range in place and returns a single status code" >}}
 
@@ -102,7 +102,7 @@ The call itself costs tens of nanoseconds. When the work behind it takes microse
 
 One rule applies at this edge: a Rust panic must not reach it, because a panic crossing `extern "C"` aborts the whole player with no Unity error log. Catch it at the boundary with `std::panic::catch_unwind` and turn it into the error code C# already checks.
 
-How you hand the arrays over matters. Declare a parameter as an array and you are asking the runtime to manage the crossing. Mono runs its marshaller on every call, and here that costs 0.165 milliseconds against a total in the 0.4 to 0.5 range. Declare it as a reference to the first element and you are passing a single address, so the cost is the same whether the array holds ten floats or ten million. Same memory, same function, still ordinary safe C#, and on Mono a third of the budget is decided by the signature. The newer runtimes recognize blittable arrays and skip the marshaller either way.
+How you hand the arrays over matters. Declare a parameter as an array and Mono runs its marshaller on every call, which here costs 0.165 milliseconds against a total in the 0.4 to 0.5 range: a third of the budget, decided by a signature. Declare it as a reference to the first element and you pass a single address, the same cost for ten floats or ten million. The newer runtimes recognize blittable arrays and skip the marshaller either way.
 
 ```csharp
 static extern int ai_score(float[] needs, ...);   // Mono marshals the array: +0.165 ms per call
@@ -117,9 +117,9 @@ It is not a new pattern either. In the browser it is Rust compiled to WebAssembl
 
 The benchmark ran on one machine, but I have shipped this pattern to Windows, macOS, Linux, Android and iOS.
 
-Four of those differ only by file extension. The crate builds as a `cdylib`, which is a `.dll` on Windows, a `.dylib` on macOS and a `.so` on Linux and Android, and the result goes into `Assets/Plugins`. Android needs one build per ABI. iOS is the exception. Embedded dynamic frameworks became legal in iOS 8, but a loose `.dylib` is not something the App Store accepts, and [Unity's iOS pipeline assumes a static library](https://stunlock.gg/posts/il2cpp_dynamic_linker_errors/) anyway. So the crate builds as a `staticlib`, Unity links it into the player, and the `DllImport` name becomes `__Internal` behind a `#if UNITY_IOS`.
+Four of those differ only by file extension. The crate builds as a `cdylib`, which is a `.dll` on Windows, a `.dylib` on macOS and a `.so` on Linux and Android, and the result goes into `Assets/Plugins`. Android needs one build per ABI. iOS is the exception: the App Store does not take a loose `.dylib`, and [Unity's iOS pipeline assumes a static library](https://stunlock.gg/posts/il2cpp_dynamic_linker_errors/). So the crate builds as a `staticlib`, Unity links it into the player, and the `DllImport` name becomes `__Internal` behind a `#if UNITY_IOS`.
 
-You do not have to write that C# side by hand. [csbindgen](https://github.com/Cysharp/csbindgen) reads the Rust exports and generates the `DllImport` declarations and matching structs on every build, and its `csharp_dll_name_if` option emits the iOS conditional. Both crates in the repository generate their bindings this way, and the Unity players consume the generated files. The `ref`-style declarations shown earlier stay hand-written on purpose, because the safe call style and the marshalling comparison are demonstrations. Generation removes the real hazard at an FFI boundary: add a field on one side, forget it on the other, and nothing complains, you just start reading the wrong bytes.
+You do not have to write that C# side by hand. [csbindgen](https://github.com/Cysharp/csbindgen) reads the Rust exports and generates the `DllImport` declarations and matching structs on every build, and its `csharp_dll_name_if` option emits the iOS conditional. Both crates in the repository generate their bindings this way, and the Unity players consume the generated files. Generation removes the real hazard at an FFI boundary: add a field on one side, forget it on the other, and nothing complains, you just start reading the wrong bytes.
 
 None of this is much work, but it is work, and it is the part Burst saves you.
 
@@ -135,7 +135,7 @@ Neither is hard, both are real, and Burst has no equivalent of either.
 
 ## The benchmark
 
-The workload is the utility AI from earlier. Two hundred characters each consider a thousand possible actions. Each action is scored by six scorers, and each scorer reads one input, pushes it through a response curve, and multiplies by a weight.
+The workload is the utility AI from earlier: two hundred characters, a thousand candidate actions each, six scorers per action.
 
 {{< animsvg src="/images/posts/rust-unity/utility-anatomy.svg" alt="One character with its needs as bars feeds one action holding six scorers. Each scorer shows its response curve shape, linear, quadratic, logistic or gaussian, its input and its weight. The scorer outputs multiply into one score, one of a thousand, and the highest wins" >}}
 
@@ -190,7 +190,7 @@ The idiomatic C# is also not the slow choice. On Unity's CoreCLR it beats a hand
 
 A benchmark where one side is tuned and the other is not measures the author, not the languages. The C# engine in this benchmark got 35% faster after it received the same flat data layout the Rust side already had, and none of that 35% had anything to do with the language. The rest was measurement error: the machine, the warm-up, a stray counter in the timed loop.
 
-So both engines are held to a procedure. They must do provably identical work: 200 characters × 1,000 actions × 6 scorers, every time, by construction. Every run checks that both languages pick the same action and score for all two hundred characters before it reports a time, bit-identical in the console check mode and to 1e-5 inside the players. Any optimization that wins on one side is only a hypothesis for the other until the other side tries it. The stopping rule is the profile going flat, not the number getting satisfying. The full protocol is in [the repository](https://github.com/oddur/blog-unityrust).
+So both engines are held to a procedure. They must do provably identical work: 200 characters × 1,000 actions × 6 scorers, every time, by construction. Every run checks that both languages pick the same action and score for all two hundred characters before it reports a time. Any optimization that wins on one side is only a hypothesis for the other until the other side tries it. The stopping rule is the profile going flat, not the number getting satisfying. The full protocol is in [the repository](https://github.com/oddur/blog-unityrust).
 
 Three measurement details matter. This chip has six performance cores and twelve efficiency ones, so work spread across all eighteen swung by a factor of four between runs, and everything here is capped to six threads. Managed code needs a warm-up: the tiered JIT runs up to 25% slow over the first couple of hundred batches while it recompiles the hot code. Every number is therefore the median of warm back-to-back batches, with the early ones discarded. And nothing is compared across processes: Rust and C# are timed in the same program on the same data, with the identical native library landing within 2% across all six managed hosts as the control.
 
@@ -214,7 +214,7 @@ A processor normally works on one number at a time. SIMD is the same instruction
 
 It is not free speed. The four numbers have to sit together and they all have to want the same operation. The moment the code asks a question about one and not the others, it falls back to scalar.
 
-So the scorer was measured four ways, in the same IL2CPP player configuration on the same six threads. Each language appears twice: once written normally, one score at a time, and once with the four-at-a-time version written by hand. The Burst rows use `Unity.Mathematics` and its `float4` type, with the faster of its two `exp` options: 0.154 ms with stock `math.exp`, 0.147 with the same hand-written `exp` the Rust engine uses. The Rust rows are the enum engine from earlier and a four-wide rewrite of it.
+So the scorer was measured four ways, in the same IL2CPP player configuration on the same six threads. Each language appears twice: once written normally, one score at a time, and once with the four-at-a-time version written by hand. The Burst rows use `Unity.Mathematics` and its `float4` type (0.147 ms with the same hand-written `exp` the Rust engine uses, 0.154 with stock `math.exp`). The Rust rows are the enum engine from earlier and a four-wide rewrite of it.
 
 {{< animsvg src="/images/posts/rust-unity/simd-results.svg" alt="Bar chart in two groups. Written normally: Rust scalar 0.491 ms, Burst scalar 0.703. Hand-written four wide: Burst float4 0.147 at 4.8x its own scalar, Rust four wide safe 0.135 at 3.6x its own scalar with no unsafe" >}}
 
@@ -248,13 +248,13 @@ fn curve_fs<S: Simd>(s: S, cv: &Curve, x: f32x4<S>) -> f32x4<S> {
 
 That is a normal `match` on a normal data-carrying enum. It runs once and serves all four lanes. Around it sit a `&[ScorerEnum]` slice and rayon on the outer loop, none of which can exist inside a Burst job.
 
-SIMD in Rust is a type you reach for in one expression. Burst is a mode you enter, and entering it means the rewrite from earlier: no interfaces, no `List`, no closures and no managed strings. You cannot allocate on the managed heap either, because Burst code runs outside the runtime's control.
+SIMD in Rust is a type you reach for in one expression. Burst is a mode you enter, and entering it means the rewrite from earlier. It also means no allocation: Burst code runs outside the runtime's control, so the managed heap is out of reach.
 
 If you have already laid your data out flat to feed a Burst job, you have done the work needed to hand it to Rust. That layout is not a Burst tax or a Rust tax. It is the cost of caring about performance at all, and the hand-flattened C# from earlier ended up with the same flat arrays without either compiler asking. What differs is what you are allowed to write around it.
 
 ## Allocations and garbage collection
 
-Over a thousand batches on every runtime, the Rust engine allocated zero bytes and triggered zero collections. That is not a tuning result, it is structural. Everything Rust allocates lives in memory Rust owns and frees itself, and Unity's collector has no idea any of it exists. There is nothing there for it to walk.
+Over a thousand batches on every runtime, the Rust engine allocated zero bytes and triggered zero collections. That is not a tuning result, it is structural: Rust's memory is invisible to Unity's collector, so there is nothing for it to walk.
 
 The C# side allocates 4 to 13 kilobytes per batch. The scoring engine is not responsible. It is the `Parallel.For` machinery around it, and it is still enough to trigger real collections.
 
