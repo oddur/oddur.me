@@ -29,7 +29,7 @@ The last two have no collector. Burst avoids one by forbidding you to allocate t
 
 {{< animsvg src="/images/posts/rust-unity/landscape.svg" alt="Columns comparing Mono, IL2CPP, CoreCLR, Burst and Rust: how each turns source into machine code, whether garbage is collected, and what you are allowed to write" >}}
 
-Read that as a trade. The managed runtimes let you write anything and attach a collector. Burst removes the collector and takes away most of the language. Rust removes the collector and keeps the language.
+The managed runtimes let you write anything and attach a collector. Burst removes the collector and takes away most of the language. Rust removes the collector and keeps the language.
 
 ## Where Burst starts to hurt
 
@@ -49,7 +49,7 @@ Burst is fast partly *because* it works on raw pointers into plain native memory
 
 A pointer is an address, not the thing itself. Telling someone the address of a house does not move the house. When Unity gives you a `NativeArray`, it hands you a block of ordinary memory with a safety wrapper around it. Burst compiles down to code that reads and writes that block directly by address.
 
-C# can pass those same addresses to a native library through P/Invoke. The only requirement is that the data is blittable, the same constraint Burst already puts on anything you hand a job. Nothing is copied and nothing is converted.
+C# can pass those same addresses to a native library through P/Invoke. The only requirement is that the data is blittable, the same constraint Burst already puts on anything you hand a job.
 
 This is the dozen lines from the intro, the entire C# side of the boundary:
 
@@ -182,7 +182,7 @@ fn curve_enum(c: &Curve, x: f32) -> f32 {
 }
 ```
 
-Neither is a translation of the other, and that is the point of the comparison: each language doing this job the way its own practitioners would.
+Neither is a translation of the other, which is the point: each language doing this job the way its own practitioners would.
 
 The idiomatic C# is also not the slow choice. On Unity's CoreCLR it beats a hand-flattened version with a switch statement, 1.158 milliseconds against 1.327, because the JIT watches which implementation turns up at each call site and compiles the indirection away. On Mono and IL2CPP the switch wins by a lot. That is a property of the newer JIT rather than of C#, and worth knowing before hand-flattening anything.
 
@@ -248,9 +248,9 @@ fn curve_fs<S: Simd>(s: S, cv: &Curve, x: f32x4<S>) -> f32x4<S> {
 
 That is a normal `match` on a normal data-carrying enum, running once and serving all four lanes. Around it sit a `&[ScorerEnum]` slice and rayon on the outer loop, none of which can exist inside a Burst job.
 
-SIMD in Rust is a type you reach for in one expression. Burst is a mode you enter, and entering it means the rewrite from earlier: no interfaces, no `List`, no closures and no managed strings. You cannot allocate on the managed heap either, because Burst code runs outside the runtime's control. And the restriction follows every helper the job calls.
+SIMD in Rust is a type you reach for in one expression. Burst is a mode you enter, and entering it means the rewrite from earlier: no interfaces, no `List`, no closures and no managed strings. You cannot allocate on the managed heap either, because Burst code runs outside the runtime's control.
 
-If you have already laid your data out flat to feed a Burst job, you have done the work needed to hand it to Rust. That layout is not a Burst tax or a Rust tax. It is the cost of caring about performance at all, and the hand-flattened C# from earlier ended up with the same flat arrays without either compiler asking. The layout is sunk either way, and what differs is what you are allowed to write around it.
+If you have already laid your data out flat to feed a Burst job, you have done the work needed to hand it to Rust. That layout is not a Burst tax or a Rust tax. It is the cost of caring about performance at all, and the hand-flattened C# from earlier ended up with the same flat arrays without either compiler asking. What differs is what you are allowed to write around it.
 
 ## Allocations and garbage collection
 
