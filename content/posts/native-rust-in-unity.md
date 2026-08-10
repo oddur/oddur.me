@@ -100,6 +100,8 @@ pub unsafe extern "C" fn ai_score(
 
 The call itself costs tens of nanoseconds. When the work behind it takes microseconds, the boundary rounds to nothing.
 
+One rule applies at this edge: a Rust panic must not reach it, because a panic crossing `extern "C"` aborts the whole player with no Unity error log. Catch it at the boundary with `std::panic::catch_unwind` and turn it into the error code C# already checks.
+
 That fixed cost is also why you ask for a lot at once. The benchmark scores all two hundred characters in one call rather than making two hundred calls.
 
 How you hand the arrays over matters, and the difference is measurable. Declare a parameter as an array and you are asking the runtime to manage the crossing: Mono runs its marshaller on every call, work that scales with the data and costs 0.165 milliseconds on this workload's 0.39 total. Declare it as a reference to the first element and you are passing a single address, so the cost is the same whether the array holds ten floats or ten million. Same memory, same function, still ordinary safe C#, and on Mono nearly half the budget is decided by the signature. The newer runtimes recognize blittable arrays and skip the marshaller either way.
@@ -120,6 +122,16 @@ Four of those are the same story with a different file extension. The crate buil
 You do not write that C# side by hand. [csbindgen](https://github.com/Cysharp/csbindgen) generates the `DllImport` declarations and matching structs from the Rust exports on every build, iOS conditional included. That removes the real hazard at an FFI boundary: add a field on one side, forget it on the other, and nothing complains, you just start reading the wrong bytes.
 
 None of this is much work, but it is work, and it is the part Burst genuinely saves you.
+
+## Living with it
+
+Two things change about your day once a Rust library is in the project, and neither shows up in a benchmark.
+
+**The editor holds on to the library.** Unity loads a native plugin on first use and never unloads it, so picking up a new Rust build usually means restarting the editor. Burst recompiles in place. This is the cost you feel most if you iterate on the native side all day, and it pushes the work toward the crate's own test suite: `cargo test` runs in seconds with no editor involved, and the editor round-trip is saved for integration.
+
+**Rayon and Unity's job system do not know about each other.** Left alone, rayon sizes its pool to every core in the machine, and Unity's workers assume the same cores are theirs. Two schedulers fighting over eighteen cores is how you get a smooth benchmark and a stuttering game. Cap the pool once at startup, which is what the repository's `ai_init_threads` is for, and treat the thread count as part of your frame budget rather than a default.
+
+None of this is hard, but all of it is real, and none of it has a Burst equivalent.
 
 ## The benchmark
 
