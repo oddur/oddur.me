@@ -49,7 +49,7 @@ Burst is fast partly *because* it works on raw pointers into plain native memory
 
 A pointer is an address, not the thing itself. Telling someone the address of a house does not move the house. When Unity gives you a `NativeArray`, it hands you a block of ordinary memory with a safety wrapper around it. Burst compiles down to code that reads and writes that block directly by address.
 
-C# can pass those same addresses to a native library through a mechanism called P/Invoke. The only requirement is that the data is blittable, the same constraint Burst already puts on anything you hand a job. Nothing is copied and nothing is converted.
+C# can pass those same addresses to a native library through P/Invoke. The only requirement is that the data is blittable, the same constraint Burst already puts on anything you hand a job. Nothing is copied and nothing is converted.
 
 This is the dozen lines from the intro, the entire C# side of the boundary:
 
@@ -102,14 +102,14 @@ The call itself costs tens of nanoseconds. When the work behind it takes microse
 
 One rule applies at this edge: a Rust panic must not reach it, because a panic crossing `extern "C"` aborts the whole player with no Unity error log. Catch it at the boundary with `std::panic::catch_unwind` and turn it into the error code C# already checks.
 
-How you hand the arrays over matters, and the difference is measurable. Declare a parameter as an array and you are asking the runtime to manage the crossing: Mono runs its marshaller on every call, and here that costs 0.165 milliseconds against a total in the 0.4 to 0.5 range. Declare it as a reference to the first element and you are passing a single address, so the cost is the same whether the array holds ten floats or ten million. Same memory, same function, still ordinary safe C#, and on Mono a third of the budget is decided by the signature. The newer runtimes recognize blittable arrays and skip the marshaller either way.
+How you hand the arrays over matters. Declare a parameter as an array and you are asking the runtime to manage the crossing: Mono runs its marshaller on every call, and here that costs 0.165 milliseconds against a total in the 0.4 to 0.5 range. Declare it as a reference to the first element and you are passing a single address, so the cost is the same whether the array holds ten floats or ten million. Same memory, same function, still ordinary safe C#, and on Mono a third of the budget is decided by the signature. The newer runtimes recognize blittable arrays and skip the marshaller either way.
 
 ```csharp
 static extern int ai_score(float[] needs, ...);   // Mono marshals the array: +0.165 ms per call
 static extern int ai_score(ref float needs, ...); // pins it and passes the address: free
 ```
 
-None of this is specific to Rust. Any language that can build a C-compatible library can stand on the other side of the boundary, and C++ would work the same way. This post reaches for Rust because the point of leaving managed code is taking manual control of memory, and Rust lets you do that without opening the door to a new class of crashes.
+None of this is specific to Rust. Any language that can build a C-compatible library can stand on the other side of the boundary, and C++ would work the same way. This post reaches for Rust because the point of leaving managed code is taking manual control of memory, and Rust lets you do that without a new class of crashes.
 
 It is not a new pattern either. In the browser this is the Rust-to-WebAssembly story: JavaScript keeps the orchestration and a compiled module takes the hot loop, which is how Mozilla [sped up its source-map library](https://hacks.mozilla.org/2018/01/oxidizing-source-maps-with-rust-and-webassembly/), how Prime Video [runs its UI engine on low-powered devices](https://www.amazon.science/blog/how-prime-video-updates-its-app-for-more-than-8-000-device-types), and how 1Password [ships its core inside a browser extension](https://1password.com/blog/1password-8-the-story-so-far). The Unity version gets a cheaper boundary, though. WebAssembly runs in its own linear memory, so the JavaScript side usually pays a copy on the way in, where P/Invoke hands over addresses into the same address space and Rust reads the heap in place.
 
@@ -131,17 +131,17 @@ Two things change about your day once a Rust library is in the project, and neit
 
 **Rayon and Unity's job system do not know about each other.** Left alone, rayon sizes its pool to every core in the machine, and Unity's workers assume the same cores are theirs. Two schedulers fighting over eighteen cores is how you get a smooth benchmark and a stuttering game. Cap the pool once at startup, which is what the repository's `ai_init_threads` is for, and treat the thread count as part of your frame budget rather than a default.
 
-None of this is hard, but all of it is real, and none of it has a Burst equivalent.
+Neither is hard, both are real, and Burst has no equivalent of either.
 
 ## The benchmark
 
-The workload is a utility AI scorer, the pattern most game AI uses to decide what to do next. Two hundred characters each consider a thousand possible actions. Each action is scored by six scorers, and each scorer reads one input, pushes it through a response curve, and multiplies by a weight.
+The workload is the utility AI from earlier. Two hundred characters each consider a thousand possible actions. Each action is scored by six scorers, and each scorer reads one input, pushes it through a response curve, and multiplies by a weight.
 
 {{< animsvg src="/images/posts/rust-unity/utility-anatomy.svg" alt="One character with its needs as bars feeds one action holding six scorers. Each scorer shows its response curve shape, linear, quadratic, logistic or gaussian, its input and its weight. The scorer outputs multiply into one score, one of a thousand, and the highest wins" >}}
 
 That is 1,200,000 scorer evaluations per tick, reading from 160 KB of scorer and action data, which is just past this chip's 128 KB first-level cache and well inside the second. Both sides split the characters across the same six threads, Rust through rayon and C# through `Parallel.For`.
 
-Both sides are written the way people actually write them in that language, and both stay in safe code: no `unsafe` in the Rust, no `Unsafe.*` in the C#. The C# is an interface with a class per curve, which is what you would find in a real codebase:
+Both sides stay in safe code: no `unsafe` in the Rust, no `Unsafe.*` in the C#. The C# is an interface with a class per curve, what you would find in a real codebase:
 
 ```csharp
 public interface IScorer
@@ -192,7 +192,7 @@ A benchmark where one side is tuned and the other is not measures the author, no
 
 So both engines are held to a procedure. They must do provably identical work: 200 characters × 1,000 actions × 6 scorers, every time, by construction. Every run checks that both languages pick the same action and score for all two hundred characters before it reports a time, bit-identical in the console check mode and to 1e-5 inside the players. Any optimization that wins on one side is only a hypothesis for the other until it has been tried there. The stopping rule is the profile going flat, not the number getting satisfying. The full protocol is in [the repository](https://github.com/oddur/blog-unityrust).
 
-Three measurement details matter enough to state. This chip has six performance cores and twelve efficiency ones, so work spread across all eighteen swung by a factor of four between runs, and everything here is capped to six threads. Managed code needs a warm-up: the tiered JIT runs up to 25% slow over the first couple of hundred batches while it recompiles the hot code, so every number is the median of warm back-to-back batches with the early ones discarded. And nothing is compared across processes: Rust and C# are timed in the same program on the same data, with the identical native library landing within 2% across all six managed hosts as the control.
+Three measurement details matter. This chip has six performance cores and twelve efficiency ones, so work spread across all eighteen swung by a factor of four between runs, and everything here is capped to six threads. Managed code needs a warm-up: the tiered JIT runs up to 25% slow over the first couple of hundred batches while it recompiles the hot code, so every number is the median of warm back-to-back batches with the early ones discarded. And nothing is compared across processes: Rust and C# are timed in the same program on the same data, with the identical native library landing within 2% across all six managed hosts as the control.
 
 ## The results
 
@@ -200,7 +200,7 @@ Three measurement details matter enough to state. This chip has six performance 
 
 Read the chart downward and the story is about runtime age as much as language. Mono is a twenty-year-old JIT and loses by 6.4x. IL2CPP compiles ahead of time and loses by 4.7x. CoreCLR, a modern JIT with profile-guided optimization, loses by 2.3x, and plain .NET 10, the closest thing to Unity's future, lands in the same place.
 
-So the gap shrinks as the runtime modernizes, and then it stops shrinking. The 2.3x against a fully current runtime is the durable part: it is what remains after the runtime has caught up.
+The gap shrinks as the runtime modernizes and stops at 2.3x: that is what remains after the runtime has caught up.
 
 ## What about SIMD?
 
