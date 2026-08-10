@@ -260,3 +260,7 @@ If a system is eating your frame budget, moving it to Rust costs about a dozen l
 Reach for Burst instead when the work is already flat numeric loops over flat arrays: it is free, it needs no boundary, and it is superb at exactly that. Reach for Rust when the system has real structure, interfaces, growing collections, code a designer reads, and you want it fast anyway.
 
 The numbers here come from Unity 6 on Apple Silicon, six threads on the performance cores. The methodology, every implementation, and the raw results are in the companion repository: [github.com/oddur/blog-unityrust](https://github.com/oddur/blog-unityrust).
+
+## AI disclosure
+
+This was done as a research project with AI in the loop. A blend of Claude Opus and Claude Fable wrote the harnesses, ran the benchmarks, and chased down the wrong turns, and the article was written with their help as well. Every number went through the validation described above, and the code and raw results are public in the repository, so nothing here has to be taken on trust.
