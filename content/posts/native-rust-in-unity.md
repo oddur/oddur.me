@@ -237,11 +237,9 @@ This workload was built to be allocation-light, so this is close to the best cas
 
 ## Getting it onto every platform
 
-The benchmark ran on one machine, but I have shipped this pattern to Windows, macOS, Linux, Android and iOS.
+The benchmark ran on one machine, but I have shipped this pattern to Windows, macOS, Linux, Android and iOS. The crate builds as a `cdylib`, which is a `.dll`, `.dylib` or `.so` depending on the platform, and the result goes into `Assets/Plugins`. iOS wants a `staticlib` linked into the player instead, with the `DllImport` name set to `__Internal`.
 
-Four of those differ only by file extension. The crate builds as a `cdylib`, which is a `.dll` on Windows, a `.dylib` on macOS and a `.so` on Linux and Android, and the result goes into `Assets/Plugins`. Android needs one build per ABI. iOS is the exception: the App Store does not take a loose `.dylib`, and [Unity's iOS pipeline assumes a static library](https://stunlock.gg/posts/il2cpp_dynamic_linker_errors/). So the crate builds as a `staticlib`, Unity links it into the player, and the `DllImport` name becomes `__Internal` behind a `#if UNITY_IOS`.
-
-You do not have to write the C# side of the boundary by hand. [csbindgen](https://github.com/Cysharp/csbindgen) reads the Rust exports and generates the `DllImport` declarations and matching structs on every build, and its `csharp_dll_name_if` option emits the iOS conditional. Both crates in the repository generate their bindings this way, and the Unity players consume the generated files. Generation removes the real hazard at an FFI boundary: add a field on one side, forget it on the other, and nothing complains, you just start reading the wrong bytes.
+[csbindgen](https://github.com/Cysharp/csbindgen) generates the C# bindings from the Rust exports on every build, iOS conditional included, which removes the classic FFI hazard of the two sides drifting apart. Both crates in the repository work this way.
 
 None of this is much work, but it is work, and it is the part Burst saves you.
 
