@@ -21,7 +21,7 @@ Your C# does not run as C#. Something turns it into instructions the processor u
 - **IL2CPP** does the translating before you ship, converting your C# into C++ and handing that to a normal C++ compiler.
 - **CoreCLR** is the runtime modern .NET uses, and Unity has an experimental backend for it. A JIT like Mono but twenty years newer, it recompiles hot code once it has watched the program run. This is the one that changes the answer.
 - **Burst** compiles a restricted flavor of C# into native code through LLVM, the same compiler machinery behind Rust and Clang.
-- **Rust** is the road nobody advertises: native code before you ship, and no restrictions on what you can write.
+- **Rust** is the fourth from the intro: native code before you ship, and no restrictions on what you can write.
 
 The first three are *managed*, which means a garbage collector owns your memory. You never free anything. Instead, every so often, the collector walks through everything you have allocated, works out what is still in use, and throws away the rest. While it works, your game waits.
 
@@ -168,7 +168,7 @@ fn curve_enum(c: &Curve, x: f32) -> f32 {
 }
 ```
 
-Neither is a translation of the other.
+Neither is a translation of the other, and that is the point of the comparison: each language doing this job the way its own practitioners would.
 
 The idiomatic C# is also not the slow choice. On Unity's CoreCLR it beats a hand-flattened version with a switch statement, 1.158 milliseconds against 1.327, because the JIT watches which implementation turns up at each call site and compiles the indirection away. On Mono and IL2CPP the switch wins by a lot. That is a property of the newer JIT rather than of C#, and worth knowing before hand-flattening anything.
 
@@ -192,7 +192,7 @@ So the gap shrinks as the runtime modernizes, and then it stops shrinking. The 2
 
 Everything above compares Rust against C#. Burst is the other answer. It is free, it ships with the engine, and on this workload it is genuinely fast: at its best, the same scorer in a Burst job runs at 0.147 ms against the plain C#'s 2.30.
 
-So the question is whether Rust can match that. It can, and it goes further.
+So the question is whether Rust can match that. It can, in safe code, and it comes out ahead.
 
 A processor normally works on one number at a time. SIMD is the same instruction applied to several at once: four floats multiplied by four others in one register, in roughly the time one multiply takes.
 
