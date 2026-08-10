@@ -263,4 +263,4 @@ The numbers here come from Unity 6 on Apple Silicon, six threads on the performa
 
 ## AI disclosure
 
-This was done as a research project with AI in the loop. A blend of Claude Opus and Claude Fable wrote the harnesses, ran the benchmarks, and chased down the wrong turns, and the article was written with their help as well. Every number went through the validation described above, and the code and raw results are public in the repository, so nothing here has to be taken on trust.
+This was done as a research project with AI in the loop. A blend of Claude Opus and Claude Fable wrote the harnesses, ran the benchmarks, and chased down the wrong turns, and the article was written with their help as well. Every number went through the validation described above, and the code and raw results are public in the repository.
