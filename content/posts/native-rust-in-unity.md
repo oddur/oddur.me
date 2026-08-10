@@ -51,17 +51,63 @@ A pointer is an address, not the thing itself. Telling someone the address of a 
 
 C# can pass those same addresses to a native library through a mechanism called P/Invoke. The only requirement is that the data is blittable, the same constraint Burst already puts on anything you hand a job. Nothing is copied and nothing is converted.
 
+This is the dozen lines from the intro, the entire C# side of the boundary:
+
+```csharp
+[DllImport("libutility_ai", CallingConvention = CallingConvention.Cdecl)]
+static extern int ai_score(
+    ref float needs,
+    ref Character characters, int characterCount,
+    ref ActionDef actions, int actionCount,
+    ref Scorer scorers, int scorerCount,
+    ref uint outAction, ref float outScore);
+
+// the whole call: first-element addresses, nothing copied
+Native.ai_score(ref needs[0], ref chars[0], chars.Length,
+                ref actions[0], actions.Length,
+                ref scorers[0], scorers.Length,
+                ref outAction[0], ref outScore[0]);
+```
+
 You do not need `NativeArray` for this. A plain managed array of blittable values is the same flat block of memory, just living on the C# heap, and passing a reference to its first element pins it in place for the duration of the call. Every number in this post comes from ordinary `float[]` and struct arrays crossing the boundary that way. The pointer is only valid until the call returns, so the pattern is: hand the addresses over, let Rust do all its work, get the results back in the same buffers, done. `NativeArray` earns its place when a buffer has to outlive the call or be shared with a Burst job, not at the boundary itself.
 
 {{< animsvg src="/images/posts/rust-unity/ffi-boundary.svg" alt="C# passes three addresses across the P/Invoke boundary. The managed heap is drawn as one contiguous block of memory with the needs, scorers and results arrays as ranges inside it, and Rust's three slices each point at the start of their range. Rust writes the results range in place and returns a single status code" >}}
 
 One call goes out carrying a few addresses. Rust wraps those addresses as slices, spreads the work across every core, and writes the answers into the buffers C# already owns. It returns a single number to say whether it worked. The buffers never move, and C# reads its results out of the same memory it handed over.
 
+The receiving side is the mirror image, lightly trimmed from the repository:
+
+```rust
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn ai_score(
+    needs: *const f32,
+    characters: *const Character, character_count: i32,
+    /* actions, scorers, and the two out pointers */
+) -> i32 {
+    let nc = character_count as usize;
+    let needs = slice::from_raw_parts(needs, nc * INPUTS);
+    let chars = slice::from_raw_parts(characters, nc);
+    // ...the rest wrapped the same way, then rayon fans out per character:
+    out_action.par_iter_mut().zip(out_score.par_iter_mut())
+        .zip(chars).zip(needs.par_chunks_exact(INPUTS))
+        .for_each(|(((a, s), ch), n)| {
+            let (best, score) = best_action(n, ch, actions, scorers);
+            *a = best; *s = score;
+        });
+    0
+}
+```
+
 The call itself costs tens of nanoseconds. When the work behind it takes microseconds, the boundary rounds to nothing.
 
 That fixed cost is also why you ask for a lot at once. The benchmark scores all two hundred characters in one call rather than making two hundred calls. The expensive pattern in a game is not one big request, it is a thin trickle of tiny ones spread across the frame.
 
 There is one trap. Declaring the parameters as arrays makes Mono run its array marshaller on every call, which on this workload costs 0.165 milliseconds against a total of 0.39. Passing a reference to the first element instead removes it completely and is still ordinary safe C#. The other runtimes do not care either way, so on Mono this is nearly half your budget hidden in a signature.
+
+```csharp
+static extern int ai_score(float[] needs, ...);   // Mono marshals the array: +0.165 ms per call
+static extern int ai_score(ref float needs, ...); // pins it and passes the address: free
+```
 
 ## Getting it onto every platform
 
@@ -81,7 +127,48 @@ The workload is a utility AI scorer, the pattern most game AI uses to decide wha
 
 That is 1,200,000 scorer evaluations per tick, reading from 160 KB of scorer and action data, which is just past this chip's 128 KB first-level cache and well inside the second. Both sides split the characters across the same six threads, Rust through rayon and C# through `Parallel.For`.
 
-Both sides are written the way people actually write them in that language. The C# has an interface per scorer with a class implementing each curve, which is what you would find in a real codebase. The Rust has a data-carrying enum matched directly, which is what a Rust programmer reaches for when the variants are known up front. Neither is a translation of the other, and both stay in safe code: no `unsafe` in the Rust, no `Unsafe.*` in the C#.
+Both sides are written the way people actually write them in that language, and both stay in safe code: no `unsafe` in the Rust, no `Unsafe.*` in the C#. The C# is an interface with a class per curve, which is what you would find in a real codebase:
+
+```csharp
+public interface IScorer
+{
+    float Score(CharacterObj ch, in ActionDef action);
+}
+
+public sealed class LinearScorer : IScorer
+{
+    public int Input; public float M, B, C, Weight;
+    public float Score(CharacterObj ch, in ActionDef a)
+    {
+        float x = Engines.ReadInput(Input, ch, in a);
+        return Math.Clamp(M * (x - C) + B, 0f, 1f) * Weight;
+    }
+}
+// three more classes: Quadratic, Logistic, Gaussian
+```
+
+The Rust is a data-carrying enum matched directly, which is what a Rust programmer reaches for when the variants are known up front. Each variant carries only the fields its curve reads, and the type system stops anyone touching the others:
+
+```rust
+pub enum Curve {
+    Linear { m: f32, c: f32, b: f32 },
+    Quadratic { m: f32, c: f32, b: f32 },
+    Logistic { k: f32, c: f32 },
+    Gaussian { k: f32, c: f32 },
+}
+
+fn curve_enum(c: &Curve, x: f32) -> f32 {
+    let v = match *c {
+        Curve::Linear { m, c, b } => m * (x - c) + b,
+        Curve::Quadratic { m, c, b } => { let d = x - c; m * d * d + b }
+        Curve::Logistic { k, c } => 1.0 / (1.0 + (-k * (x - c)).exp()),
+        Curve::Gaussian { k, c } => { let d = x - c; (-k * d * d).exp() }
+    };
+    v.clamp(0.0, 1.0)
+}
+```
+
+Neither is a translation of the other.
 
 The idiomatic C# is also not the slow choice. On Unity's CoreCLR it beats a hand-flattened version with a switch statement, 1.158 milliseconds against 1.327, because the JIT watches which implementation turns up at each call site and compiles the indirection away. On Mono and IL2CPP the switch wins by a lot. That is a property of the newer JIT rather than of C#, and worth knowing before hand-flattening anything.
 
@@ -125,7 +212,7 @@ Getting the roughly 4x meant writing the lanes by hand on both sides, and the tr
 
 Once both sides are written that way, Rust comes out about 8% ahead. The vector engines validate like everything else, with one difference: a vector `exp` reorders float arithmetic, so their scores match the scalar reference to within 3e-8 rather than to the bit, and every character still picks the same action.
 
-The Rust version is also **safe code**: stable Rust does not ship `std::simd` yet, but the [`fearless_simd`](https://crates.io/crates/fearless_simd) crate reaches the same instructions safely, with no `unsafe` anywhere in the engine. And it sits inside ordinary Rust:
+The Rust version is also **safe code**: stable Rust does not ship `std::simd` yet, but the [`fearless_simd`](https://crates.io/crates/fearless_simd) crate reaches the same instructions safely, with no `unsafe` anywhere in the engine. And it is recognizably the `curve_enum` from the benchmark section, gone four wide:
 
 ```rust
 fn curve_fs<S: Simd>(s: S, cv: &Curve, x: f32x4<S>) -> f32x4<S> {
