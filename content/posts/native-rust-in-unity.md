@@ -113,6 +113,8 @@ static extern int ai_score(ref float needs, ...); // pins it and passes the addr
 
 None of this is specific to Rust. Any language that can build a C-compatible library can stand on the other side of the boundary, and C++ would work the same way. This post reaches for Rust because the point of leaving managed code is taking manual control of memory, and Rust lets you do that without opening the door to a new class of crashes.
 
+It is not a new pattern either. In the browser this is the Rust-to-WebAssembly story: JavaScript keeps the orchestration and a compiled module takes the hot loop, which is how Mozilla sped up its source-map library, how Prime Video runs its UI engine on low-powered devices, and how 1Password ships its core inside a browser extension. The Unity version gets a cheaper boundary, though. WebAssembly runs in its own linear memory, so the JavaScript side usually pays a copy on the way in, where P/Invoke hands over addresses into the same address space and Rust reads the heap in place.
+
 ## Getting it onto every platform
 
 The benchmark ran on one machine, but I have shipped this pattern to Windows, macOS, Linux, Android and iOS.
