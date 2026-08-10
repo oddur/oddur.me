@@ -33,7 +33,7 @@ The managed runtimes let you write anything and attach a collector. Burst remove
 
 ## Where Burst starts to hurt
 
-Burst is a fast lane, and fast lanes have vehicle restrictions. Your data has to be flat arrays of [blittable](https://learn.microsoft.com/en-us/dotnet/standard/native-interop/blittable-and-non-blittable-types) values: types laid out the same way in managed and native memory, so integers, floats and structs of them. Nothing can grow while a parallel job runs. Containers cannot hold other containers.
+Burst is a fast lane with vehicle restrictions. Your data has to be flat arrays of [blittable](https://learn.microsoft.com/en-us/dotnet/standard/native-interop/blittable-and-non-blittable-types) values: types laid out the same way in managed and native memory, so integers, floats and structs of them. Nothing can grow while a parallel job runs. Containers cannot hold other containers.
 
 For a loop that multiplies a million floats, none of that is a problem, and Burst will beat anything you write by hand. The trouble starts with code whose natural shape is not a flat array.
 
