@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400">
+<style>
+    text { font-family: system-ui, -apple-system, sans-serif; }
+    .pf-title { font-size: 14px; font-weight: 600; fill: #e2e2e2; }
+    .pf-label { font-size: 11px; fill: #a0a0a0; }
+    .pf-small { font-size: 10px; fill: #888; }
+    .pf-head { font-size: 12px; font-weight: 600; }
+    .pf-mono { font-size: 10px; fill: #a0a0a0; font-family: ui-monospace, SFMono-Regular, monospace; }
+    .pf-a { opacity: 0; }
+    @keyframes pfFade { to { opacity: 1; } }
+</style>
+<rect width="720" height="400" fill="#1a1a2e" rx="8"/>
+<text x="30" y="34" class="pf-title">What Burst makes you rewrite</text>
+
+<g class="pf-a" style="animation: pfFade 0.4s 0.3s forwards">
+<rect x="30" y="60" width="320" height="280" rx="8" fill="#20203a"/>
+<text x="190" y="84" text-anchor="middle" class="pf-head" fill="#c77730">the natural C#</text>
+
+<rect x="100" y="98" width="180" height="26" rx="4" fill="#26263e" stroke="#c77730" stroke-opacity="0.5"/>
+<text x="190" y="115" text-anchor="middle" class="pf-mono" fill="#e2e2e2">interface IScorer</text>
+
+<line x1="120" y1="124" x2="98" y2="148" stroke="#555" stroke-width="1"/>
+<line x1="166" y1="124" x2="176" y2="148" stroke="#555" stroke-width="1"/>
+<line x1="214" y1="124" x2="204" y2="148" stroke="#555" stroke-width="1"/>
+<line x1="260" y1="124" x2="282" y2="148" stroke="#555" stroke-width="1"/>
+
+<rect x="46" y="150" width="136" height="40" rx="4" fill="#26263e"/>
+<path d="M 56 180 L 82 166" fill="none" stroke="#4a8ccc" stroke-width="2" stroke-linecap="round"/>
+<text x="92" y="174" class="pf-small" fill="#e2e2e2">LinearScorer</text>
+<rect x="198" y="150" width="136" height="40" rx="4" fill="#26263e"/>
+<path d="M 208 182 Q 224 179 232 168" fill="none" stroke="#46a866" stroke-width="2" stroke-linecap="round"/>
+<text x="242" y="174" class="pf-small" fill="#e2e2e2">Quadratic</text>
+<rect x="46" y="198" width="136" height="40" rx="4" fill="#26263e"/>
+<path d="M 56 230 C 66 230 68 214 82 214" fill="none" stroke="#9668d4" stroke-width="2" stroke-linecap="round"/>
+<text x="92" y="222" class="pf-small" fill="#e2e2e2">LogisticScorer</text>
+<rect x="198" y="198" width="136" height="40" rx="4" fill="#26263e"/>
+<path d="M 208 230 C 214 230 214 214 221 214 C 228 214 228 230 234 230" fill="none" stroke="#d18238" stroke-width="2" stroke-linecap="round"/>
+<text x="242" y="222" class="pf-small" fill="#e2e2e2">Gaussian</text>
+
+<rect x="100" y="252" width="180" height="24" rx="4" fill="#26263e"/>
+<text x="190" y="268" text-anchor="middle" class="pf-mono">IScorer[] scorers</text>
+
+<text x="190" y="298" text-anchor="middle" class="pf-small" fill="#46a866">a new curve is one new class</text>
+<text x="190" y="322" text-anchor="middle" class="pf-small" fill="#c44e7c">Burst rejects the interface, the classes and the array</text>
+</g>
+
+<g class="pf-a" style="animation: pfFade 0.4s 0.9s forwards">
+<line x1="354" y1="200" x2="380" y2="200" stroke="#888" stroke-width="1.5"/>
+<polygon points="378,195 388,200 378,205" fill="#888"/>
+</g>
+
+<g class="pf-a" style="animation: pfFade 0.4s 1.1s forwards">
+<rect x="392" y="60" width="298" height="280" rx="8" fill="#20203a"/>
+<text x="541" y="84" text-anchor="middle" class="pf-head" fill="#a0a0a0">what Burst accepts</text>
+
+<rect x="420" y="100" width="240" height="76" rx="4" fill="#1a1a2e"/>
+<text x="432" y="118" class="pf-mono" fill="#e2e2e2">struct Scorer {</text>
+<text x="432" y="134" class="pf-mono">  byte curve;   // 0..3</text>
+<text x="432" y="150" class="pf-mono">  float m, k, b, c, w;</text>
+<text x="432" y="166" class="pf-mono" fill="#e2e2e2">}</text>
+
+<rect x="420" y="188" width="240" height="92" rx="4" fill="#1a1a2e"/>
+<text x="432" y="206" class="pf-mono" fill="#e2e2e2">switch (curve) {</text>
+<text x="432" y="222" class="pf-mono">  case 0: /* linear */</text>
+<text x="432" y="238" class="pf-mono">  case 1: /* quadratic */</text>
+<text x="432" y="254" class="pf-mono">  case 2: /* logistic */</text>
+<text x="432" y="270" class="pf-mono">  case 3: /* gaussian */</text>
+
+<text x="541" y="302" text-anchor="middle" class="pf-small" fill="#c44e7c">a new curve is a new case</text>
+<text x="541" y="316" text-anchor="middle" class="pf-small" fill="#c44e7c">in every switch that scores</text>
+</g>
+
+<text x="30" y="372" class="pf-label pf-a" style="animation: pfFade 0.5s 1.7s forwards">Same answers, different program. The polymorphism is re-encoded by hand, and the extension point is gone.</text>
+</svg>

@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 430">
+<style>
+    text { font-family: system-ui, -apple-system, sans-serif; }
+    .pf-title { font-size: 14px; font-weight: 600; fill: #e2e2e2; }
+    .pf-label { font-size: 11px; fill: #a0a0a0; }
+    .pf-small { font-size: 10px; fill: #888; }
+    .pf-big { font-size: 13px; font-weight: 600; }
+    .pf-a { opacity: 0; }
+    @keyframes pfFade { to { opacity: 1; } }
+    @keyframes pfGrow { to { transform: scaleX(1); } }
+    @keyframes pfDraw { to { stroke-dashoffset: 0; } }
+</style>
+<rect width="720" height="430" fill="#1a1a2e" rx="8"/>
+<text x="30" y="34" class="pf-title">Five ways to turn your code into machine code</text>
+<text x="30" y="54" class="pf-small">every one of them ships inside the same Unity game</text>
+
+<g class="pf-a" style="animation: pfFade 0.4s 0.30s forwards">
+<rect x="30" y="72" width="124" height="238" rx="8" fill="#20203a"/>
+<text x="92" y="96" text-anchor="middle" class="pf-big" fill="#9668d4">Mono</text>
+<rect x="43" y="116" width="98" height="26" rx="4" fill="#26263e"/>
+<text x="92" y="133" text-anchor="middle" class="pf-small" fill="#e2e2e2">C#</text>
+<line x1="92" y1="144" x2="92" y2="164" stroke="#888" stroke-width="1.2"/>
+<polygon points="88,160 92,167 96,160" fill="#888"/>
+<text x="92" y="180" text-anchor="middle" class="pf-small">JIT, while</text>
+<text x="92" y="194" text-anchor="middle" class="pf-small">the game runs</text>
+<line x1="92" y1="202" x2="92" y2="228" stroke="#888" stroke-width="1.2"/>
+<polygon points="88,224 92,231 96,224" fill="#888"/>
+<rect x="43" y="232" width="98" height="26" rx="4" fill="#9668d4" fill-opacity="0.22" stroke="#9668d4" stroke-width="1"/>
+<text x="92" y="249" text-anchor="middle" class="pf-small" fill="#e2e2e2">machine code</text>
+<text x="92" y="278" text-anchor="middle" class="pf-small">garbage</text>
+<text x="92" y="294" text-anchor="middle" class="pf-small" fill="#e06060">collected</text>
+</g>
+<text x="92" y="336" text-anchor="middle" class="pf-small pf-a" style="animation: pfFade 0.4s 0.55s forwards">you can write</text>
+<text x="92" y="352" text-anchor="middle" class="pf-small pf-a" fill="#e2e2e2" style="animation: pfFade 0.4s 0.55s forwards">the whole language</text>
+
+<g class="pf-a" style="animation: pfFade 0.4s 0.50s forwards">
+<rect x="164" y="72" width="124" height="238" rx="8" fill="#20203a"/>
+<text x="226" y="96" text-anchor="middle" class="pf-big" fill="#c77730">IL2CPP</text>
+<rect x="177" y="116" width="98" height="26" rx="4" fill="#26263e"/>
+<text x="226" y="133" text-anchor="middle" class="pf-small" fill="#e2e2e2">C#</text>
+<line x1="226" y1="144" x2="226" y2="164" stroke="#888" stroke-width="1.2"/>
+<polygon points="222,160 226,167 230,160" fill="#888"/>
+<text x="226" y="180" text-anchor="middle" class="pf-small">C++, before</text>
+<text x="226" y="194" text-anchor="middle" class="pf-small">you ship</text>
+<line x1="226" y1="202" x2="226" y2="228" stroke="#888" stroke-width="1.2"/>
+<polygon points="222,224 226,231 230,224" fill="#888"/>
+<rect x="177" y="232" width="98" height="26" rx="4" fill="#c77730" fill-opacity="0.22" stroke="#c77730" stroke-width="1"/>
+<text x="226" y="249" text-anchor="middle" class="pf-small" fill="#e2e2e2">machine code</text>
+<text x="226" y="278" text-anchor="middle" class="pf-small">garbage</text>
+<text x="226" y="294" text-anchor="middle" class="pf-small" fill="#e06060">collected</text>
+</g>
+<text x="226" y="336" text-anchor="middle" class="pf-small pf-a" style="animation: pfFade 0.4s 0.75s forwards">you can write</text>
+<text x="226" y="352" text-anchor="middle" class="pf-small pf-a" fill="#e2e2e2" style="animation: pfFade 0.4s 0.75s forwards">the whole language</text>
+
+<g class="pf-a" style="animation: pfFade 0.4s 0.70s forwards">
+<rect x="298" y="72" width="124" height="238" rx="8" fill="#20203a"/>
+<text x="360" y="96" text-anchor="middle" class="pf-big" fill="#c44e7c">CoreCLR</text>
+<rect x="311" y="116" width="98" height="26" rx="4" fill="#26263e"/>
+<text x="360" y="133" text-anchor="middle" class="pf-small" fill="#e2e2e2">C#</text>
+<line x1="360" y1="144" x2="360" y2="164" stroke="#888" stroke-width="1.2"/>
+<polygon points="356,160 360,167 364,160" fill="#888"/>
+<text x="360" y="180" text-anchor="middle" class="pf-small">JIT, and again</text>
+<text x="360" y="194" text-anchor="middle" class="pf-small">once it has watched</text>
+<line x1="360" y1="202" x2="360" y2="228" stroke="#888" stroke-width="1.2"/>
+<polygon points="356,224 360,231 364,224" fill="#888"/>
+<rect x="311" y="232" width="98" height="26" rx="4" fill="#c44e7c" fill-opacity="0.22" stroke="#c44e7c" stroke-width="1"/>
+<text x="360" y="249" text-anchor="middle" class="pf-small" fill="#e2e2e2">machine code</text>
+<text x="360" y="278" text-anchor="middle" class="pf-small">garbage</text>
+<text x="360" y="294" text-anchor="middle" class="pf-small" fill="#e06060">collected</text>
+</g>
+<text x="360" y="336" text-anchor="middle" class="pf-small pf-a" style="animation: pfFade 0.4s 0.95s forwards">you can write</text>
+<text x="360" y="352" text-anchor="middle" class="pf-small pf-a" fill="#e2e2e2" style="animation: pfFade 0.4s 0.95s forwards">the whole language</text>
+
+<g class="pf-a" style="animation: pfFade 0.4s 0.90s forwards">
+<rect x="432" y="72" width="124" height="238" rx="8" fill="#20203a"/>
+<text x="494" y="96" text-anchor="middle" class="pf-big" fill="#46a866">Burst</text>
+<rect x="445" y="116" width="98" height="26" rx="4" fill="#26263e"/>
+<text x="494" y="133" text-anchor="middle" class="pf-small" fill="#e2e2e2">a C# subset</text>
+<line x1="494" y1="144" x2="494" y2="164" stroke="#888" stroke-width="1.2"/>
+<polygon points="490,160 494,167 498,160" fill="#888"/>
+<text x="494" y="180" text-anchor="middle" class="pf-small">LLVM, before</text>
+<text x="494" y="194" text-anchor="middle" class="pf-small">you ship</text>
+<line x1="494" y1="202" x2="494" y2="228" stroke="#888" stroke-width="1.2"/>
+<polygon points="490,224 494,231 498,224" fill="#888"/>
+<rect x="445" y="232" width="98" height="26" rx="4" fill="#46a866" fill-opacity="0.22" stroke="#46a866" stroke-width="1"/>
+<text x="494" y="249" text-anchor="middle" class="pf-small" fill="#e2e2e2">SIMD code</text>
+<text x="494" y="278" text-anchor="middle" class="pf-small">garbage</text>
+<text x="494" y="294" text-anchor="middle" class="pf-small" fill="#46a866">none</text>
+</g>
+<text x="494" y="336" text-anchor="middle" class="pf-small pf-a" style="animation: pfFade 0.4s 1.15s forwards">you can write</text>
+<text x="494" y="352" text-anchor="middle" class="pf-small pf-a" fill="#e2e2e2" style="animation: pfFade 0.4s 1.15s forwards">flat arrays only</text>
+
+<g class="pf-a" style="animation: pfFade 0.4s 1.10s forwards">
+<rect x="566" y="72" width="124" height="238" rx="8" fill="#20203a"/>
+<text x="628" y="96" text-anchor="middle" class="pf-big" fill="#4a8ccc">Rust</text>
+<rect x="579" y="116" width="98" height="26" rx="4" fill="#26263e"/>
+<text x="628" y="133" text-anchor="middle" class="pf-small" fill="#e2e2e2">Rust</text>
+<line x1="628" y1="144" x2="628" y2="164" stroke="#888" stroke-width="1.2"/>
+<polygon points="624,160 628,167 632,160" fill="#888"/>
+<text x="628" y="180" text-anchor="middle" class="pf-small">LLVM, before</text>
+<text x="628" y="194" text-anchor="middle" class="pf-small">you ship</text>
+<line x1="628" y1="202" x2="628" y2="228" stroke="#888" stroke-width="1.2"/>
+<polygon points="624,224 628,231 632,224" fill="#888"/>
+<rect x="579" y="232" width="98" height="26" rx="4" fill="#4a8ccc" fill-opacity="0.22" stroke="#4a8ccc" stroke-width="1"/>
+<text x="628" y="249" text-anchor="middle" class="pf-small" fill="#e2e2e2">machine code</text>
+<text x="628" y="278" text-anchor="middle" class="pf-small">garbage</text>
+<text x="628" y="294" text-anchor="middle" class="pf-small" fill="#4a8ccc">none</text>
+</g>
+<text x="628" y="336" text-anchor="middle" class="pf-small pf-a" style="animation: pfFade 0.4s 1.35s forwards">you can write</text>
+<text x="628" y="352" text-anchor="middle" class="pf-small pf-a" fill="#e2e2e2" style="animation: pfFade 0.4s 1.35s forwards">the whole language</text>
+
+<text x="30" y="396" class="pf-label pf-a" style="animation: pfFade 0.5s 1.6s forwards">The three on the left are the easy road with a collector attached. The two on the right have no collector,</text>
+<text x="30" y="412" class="pf-label pf-a" style="animation: pfFade 0.5s 1.6s forwards">and only one of them lets you write whatever you want.</text>
+</svg>

@@ -1,0 +1,39 @@
+{{- /* Play inlined SVG animations when they scroll into view, replay on click. */ -}}
+<script>
+  (function () {
+    var figures = document.querySelectorAll(".anim-svg");
+    if (!figures.length) return;
+
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return; // the stylesheet already shows the finished state
+
+    function play(el) {
+      el.classList.remove("play");
+      void el.offsetWidth; // forces a reflow so the animations restart
+      el.classList.add("play");
+    }
+
+    if ("IntersectionObserver" in window) {
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          play(entry.target);
+          observer.unobserve(entry.target); // first view only, then it is on you
+        });
+      }, { threshold: 0.25 });
+      figures.forEach(function (el) { observer.observe(el); });
+    } else {
+      figures.forEach(play);
+    }
+
+    figures.forEach(function (el) {
+      el.addEventListener("click", function () { play(el); });
+      el.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          play(el);
+        }
+      });
+    });
+  })();
+</script>

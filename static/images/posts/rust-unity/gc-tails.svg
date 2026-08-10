@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 410">
+<style>
+    text { font-family: system-ui, -apple-system, sans-serif; }
+    .pf-title { font-size: 14px; font-weight: 600; fill: #e2e2e2; }
+    .pf-label { font-size: 11px; fill: #a0a0a0; }
+    .pf-small { font-size: 10px; fill: #888; }
+    .pf-big { font-size: 13px; font-weight: 600; }
+    .pf-a { opacity: 0; }
+    @keyframes pfFade { to { opacity: 1; } }
+    @keyframes pfGrow { to { transform: scaleX(1); } }
+    @keyframes pfDraw { to { stroke-dashoffset: 0; } }
+
+    .pf-bar { transform-origin: left center; transform: scaleX(0); }
+    </style>
+<rect width="720" height="410" fill="#1a1a2e" rx="8"/>
+<text x="30" y="36" class="pf-title">How often the collector stopped the work</text>
+<text x="30" y="56" class="pf-small">1,000 batches in a row, 6 threads, nothing else running</text>
+
+<text x="238" y="108" text-anchor="end" class="pf-label">Rust, every runtime</text>
+<rect x="250" y="92" width="10" height="24" rx="4" fill="#4a8ccc" fill-opacity="0.25" class="pf-a" style="animation: pfFade 0.4s 0.30s forwards"/>
+<text class="pf-a" x="272" y="108" font-size="12" font-weight="600" fill="#4a8ccc" style="animation: pfFade 0.4s 0.60s forwards">0 times</text>
+<text class="pf-a pf-small" x="334" y="108" style="animation: pfFade 0.4s 0.70s forwards">0 bytes allocated, nothing to walk</text>
+
+<text x="238" y="152" text-anchor="end" class="pf-label">Unity CoreCLR C#</text>
+<rect x="250" y="136" width="10" height="24" rx="4" fill="#c44e7c" fill-opacity="0.25" class="pf-a" style="animation: pfFade 0.4s 0.50s forwards"/>
+<text class="pf-a" x="272" y="152" font-size="12" font-weight="600" fill="#c44e7c" style="animation: pfFade 0.4s 0.80s forwards">0 times</text>
+<text class="pf-a pf-small" x="334" y="152" style="animation: pfFade 0.4s 0.90s forwards">4.5 KB per batch, generational heap absorbed it</text>
+
+<text x="238" y="196" text-anchor="end" class="pf-label">Mono C#</text>
+<rect class="pf-bar" x="250" y="180" width="56.7" height="24" rx="4" fill="#9668d4" style="animation: pfGrow 0.6s 0.70s forwards"/>
+<text class="pf-a" x="318.7" y="196" font-size="12" font-weight="600" fill="#e2e2e2" style="animation: pfFade 0.3s 1.25s forwards">4 times</text>
+<text class="pf-a pf-small" x="374" y="196" style="animation: pfFade 0.3s 1.35s forwards">4.7 KB per batch</text>
+
+<text x="238" y="240" text-anchor="end" class="pf-label">IL2CPP C#</text>
+<rect class="pf-bar" x="250" y="224" width="85.0" height="24" rx="4" fill="#c77730" style="animation: pfGrow 0.6s 0.90s forwards"/>
+<text class="pf-a" x="347.0" y="240" font-size="12" font-weight="600" fill="#e2e2e2" style="animation: pfFade 0.3s 1.45s forwards">6 times</text>
+<text class="pf-a pf-small" x="402" y="240" style="animation: pfFade 0.3s 1.55s forwards">12.2 KB per batch</text>
+
+<text x="238" y="284" text-anchor="end" class="pf-label">Mono C#, incremental GC</text>
+<rect class="pf-bar" x="250" y="268" width="184.2" height="24" rx="4" fill="#9668d4" style="animation: pfGrow 0.6s 1.10s forwards"/>
+<text class="pf-a" x="446.2" y="284" font-size="12" font-weight="600" fill="#e2e2e2" style="animation: pfFade 0.3s 1.65s forwards">13 times</text>
+<text class="pf-a pf-small" x="508" y="284" style="animation: pfFade 0.3s 1.75s forwards">median +2.5%</text>
+
+<text x="238" y="328" text-anchor="end" class="pf-label">IL2CPP C#, incremental GC</text>
+<rect class="pf-bar" x="250" y="312" width="340.0" height="24" rx="4" fill="#c77730" style="animation: pfGrow 0.6s 1.30s forwards"/>
+<text class="pf-a" x="602.0" y="328" font-size="12" font-weight="600" fill="#e2e2e2" style="animation: pfFade 0.3s 1.85s forwards">24 times</text>
+<text class="pf-a pf-small" x="602.0" y="343" style="animation: pfFade 0.3s 1.95s forwards">median +6.6%</text>
+
+<text x="30" y="376" class="pf-label pf-a" style="animation: pfFade 0.5s 2.0s forwards">Incremental collection did what it promises: three to four times as many collections, each smaller.</text>
+<text x="30" y="392" class="pf-label pf-a" style="animation: pfFade 0.5s 2.0s forwards">Neither workload allocates enough for that to reach the tail. The Rust row is empty by construction.</text>
+</svg>

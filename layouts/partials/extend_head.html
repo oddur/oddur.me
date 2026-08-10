@@ -1,0 +1,54 @@
+{{- /* Styles for inlined animated SVGs (see layouts/shortcodes/animsvg.html) */ -}}
+<style>
+  .anim-svg {
+    margin: 1.6rem 0;
+    position: relative;
+    cursor: pointer;
+    outline: none;
+  }
+  .anim-svg svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+
+  /* Before playback, suppress every animation so animated elements sit at
+     their starting state. Removing this class lets the inline animations run
+     from the beginning, which is also how replay works. */
+  .anim-svg:not(.play) svg * {
+    animation: none !important;
+  }
+
+  .anim-svg::after {
+    content: "↻ replay";
+    position: absolute;
+    right: 0.7rem;
+    bottom: 0.7rem;
+    font-size: 0.72rem;
+    color: #8a8aa0;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+  }
+  .anim-svg:hover::after,
+  .anim-svg:focus-visible::after {
+    opacity: 1;
+  }
+  .anim-svg:focus-visible {
+    box-shadow: 0 0 0 2px #5b8fd4;
+    border-radius: 8px;
+  }
+
+  /* Readers who ask for less motion get the finished picture, not a blank one. */
+  @media (prefers-reduced-motion: reduce) {
+    .anim-svg { cursor: default; }
+    .anim-svg::after { content: none; }
+    .anim-svg svg * {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      stroke-dashoffset: 0 !important;
+    }
+  }
+</style>

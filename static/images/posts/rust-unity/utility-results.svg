@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 416">
+<style>
+    text { font-family: system-ui, -apple-system, sans-serif; }
+    .pf-title { font-size: 14px; font-weight: 600; fill: #e2e2e2; }
+    .pf-label { font-size: 11px; fill: #a0a0a0; }
+    .pf-small { font-size: 10px; fill: #888; }
+    .pf-big { font-size: 13px; font-weight: 600; }
+    .pf-a { opacity: 0; }
+    @keyframes pfFade { to { opacity: 1; } }
+    @keyframes pfGrow { to { transform: scaleX(1); } }
+    @keyframes pfDraw { to { stroke-dashoffset: 0; } }
+
+    .pf-bar { transform-origin: left center; transform: scaleX(0); }
+    </style>
+<rect width="720" height="416" fill="#1a1a2e" rx="8"/>
+<text x="30" y="36" class="pf-title">Utility AI: 1.2 million scorer evaluations per tick</text>
+<text x="30" y="56" class="pf-small">200 characters x 1,000 actions x 6 scorers, 6 threads, lower is better</text>
+
+<line class="pf-a" x1="289" y1="98" x2="289" y2="350" stroke="#4a8ccc" stroke-width="1" stroke-dasharray="3 4" stroke-opacity="0.55" style="animation: pfFade 0.4s 1.15s forwards"/>
+
+<text x="216" y="132" text-anchor="end" class="pf-label">Rust, every runtime</text>
+<rect class="pf-bar" x="226" y="116" width="63" height="22" rx="4" fill="#4a8ccc" style="animation: pfGrow 0.6s 0.30s forwards"/>
+<text class="pf-a" x="301" y="133" fill="#e2e2e2" font-size="11" font-weight="600" style="animation: pfFade 0.3s 0.90s forwards">0.49 ms</text>
+
+<text x="216" y="166" text-anchor="end" class="pf-label">Mono C#</text>
+<rect class="pf-bar" x="226" y="150" width="406" height="22" rx="4" fill="#9668d4" style="animation: pfGrow 0.6s 0.44s forwards"/>
+<text class="pf-a" x="644" y="167" fill="#e2e2e2" font-size="11" font-weight="600" style="animation: pfFade 0.3s 1.04s forwards">3.15</text>
+<text class="pf-a pf-small" x="644" y="181" style="animation: pfFade 0.3s 1.14s forwards">6.4x</text>
+
+<text x="216" y="200" text-anchor="end" class="pf-label">Mono C#, incremental GC</text>
+<rect class="pf-bar" x="226" y="184" width="412" height="22" rx="4" fill="#9668d4" style="animation: pfGrow 0.6s 0.58s forwards"/>
+<text class="pf-a" x="650" y="201" fill="#e2e2e2" font-size="11" font-weight="600" style="animation: pfFade 0.3s 1.18s forwards">3.20</text>
+
+<text x="216" y="234" text-anchor="end" class="pf-label">IL2CPP C#</text>
+<rect class="pf-bar" x="226" y="218" width="297" height="22" rx="4" fill="#c77730" style="animation: pfGrow 0.6s 0.72s forwards"/>
+<text class="pf-a" x="535" y="235" fill="#e2e2e2" font-size="11" font-weight="600" style="animation: pfFade 0.3s 1.32s forwards">2.30</text>
+<text class="pf-a pf-small" x="573" y="235" style="animation: pfFade 0.3s 1.42s forwards">4.7x</text>
+
+<text x="216" y="268" text-anchor="end" class="pf-label">IL2CPP C#, incremental GC</text>
+<rect class="pf-bar" x="226" y="252" width="300" height="22" rx="4" fill="#c77730" style="animation: pfGrow 0.6s 0.86s forwards"/>
+<text class="pf-a" x="538" y="269" fill="#e2e2e2" font-size="11" font-weight="600" style="animation: pfFade 0.3s 1.46s forwards">2.32</text>
+
+<text x="216" y="302" text-anchor="end" class="pf-label">Unity CoreCLR C#</text>
+<rect class="pf-bar" x="226" y="286" width="149" height="22" rx="4" fill="#c44e7c" style="animation: pfGrow 0.6s 1.00s forwards"/>
+<text class="pf-a" x="387" y="303" fill="#e2e2e2" font-size="11" font-weight="600" style="animation: pfFade 0.3s 1.60s forwards">1.16</text>
+<text class="pf-a pf-small" x="425" y="303" style="animation: pfFade 0.3s 1.70s forwards">2.3x</text>
+
+<text x="216" y="336" text-anchor="end" class="pf-label">standalone .NET 10 C#</text>
+<rect class="pf-bar" x="226" y="320" width="146" height="22" rx="4" fill="#46a866" style="animation: pfGrow 0.6s 1.14s forwards"/>
+<text class="pf-a" x="384" y="337" fill="#e2e2e2" font-size="11" font-weight="600" style="animation: pfFade 0.3s 1.74s forwards">1.13</text>
+<text class="pf-a pf-small" x="422" y="337" style="animation: pfFade 0.3s 1.84s forwards">2.3x</text>
+
+<text x="30" y="378" class="pf-label pf-a" style="animation: pfFade 0.5s 1.9s forwards">The same slope as pathfinding, ordered by runtime age. The floor is different.</text>
+<text x="30" y="394" class="pf-label pf-a" style="animation: pfFade 0.5s 1.9s forwards">Pathfinding converged to a tie on .NET 10. This stops at 2.3x and stays there.</text>
+</svg>

@@ -1,0 +1,12 @@
+{{- /* Inline an animated SVG so it can be replayed on scroll and on click.
+       Usage: {{< animsvg src="/images/posts/x/y.svg" alt="description" >}} */ -}}
+{{- $src := .Get "src" -}}
+{{- $alt := .Get "alt" | default "" -}}
+{{- $path := printf "static%s" $src -}}
+{{- if fileExists $path -}}
+<figure class="anim-svg" role="img" aria-label="{{ $alt }}" tabindex="0" title="Click to replay">
+{{ readFile $path | safeHTML }}
+</figure>
+{{- else -}}
+{{- errorf "animsvg: file not found: %s" $path -}}
+{{- end -}}

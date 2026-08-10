@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 330">
+<style>
+    text { font-family: system-ui, -apple-system, sans-serif; }
+    .pf-title { font-size: 14px; font-weight: 600; fill: #e2e2e2; }
+    .pf-label { font-size: 11px; fill: #a0a0a0; }
+    .pf-small { font-size: 10px; fill: #888; }
+    .pf-a { opacity: 0; }
+    @keyframes pfFade { to { opacity: 1; } }
+    @keyframes pfGrow { to { transform: scaleX(1); } }
+    .pf-bar { transform-origin: left center; transform: scaleX(0); }
+</style>
+<rect width="720" height="330" fill="#1a1a2e" rx="8"/>
+<text x="30" y="34" class="pf-title">The same scorer, written normally and four wide</text>
+<text x="30" y="54" class="pf-small">utility AI, IL2CPP player, six threads, median of three runs, lower is better</text>
+
+<text x="30" y="92" class="pf-small" fill="#a0a0a0">written normally, one score at a time</text>
+
+<text x="216" y="118" text-anchor="end" class="pf-label">Rust scalar</text>
+<rect class="pf-bar" x="226" y="102" width="300" height="22" rx="4" fill="#4a8ccc" style="animation: pfGrow 0.6s 0.35s forwards"/>
+<text class="pf-a" x="538" y="119" fill="#e2e2e2" font-size="11" font-weight="600" style="animation: pfFade 0.3s 0.95s forwards">0.491 ms</text>
+
+<text x="216" y="152" text-anchor="end" class="pf-label">Burst scalar</text>
+<rect class="pf-bar" x="226" y="136" width="430" height="22" rx="4" fill="#c77730" style="animation: pfGrow 0.6s 0.49s forwards"/>
+<text class="pf-a" x="668" y="153" fill="#e2e2e2" font-size="11" font-weight="600" style="animation: pfFade 0.3s 1.09s forwards">0.703</text>
+
+<text x="30" y="196" class="pf-small" fill="#a0a0a0">the four-wide version, written by hand</text>
+
+<text x="216" y="222" text-anchor="end" class="pf-label">Burst `float4`</text>
+<rect class="pf-bar" x="226" y="206" width="90" height="22" rx="4" fill="#c77730" style="animation: pfGrow 0.6s 0.63s forwards"/>
+<text class="pf-a" x="328" y="223" fill="#e2e2e2" font-size="11" font-weight="600" style="animation: pfFade 0.3s 1.23s forwards">0.147</text>
+<text class="pf-a" x="392" y="223" font-size="10" fill="#888" style="animation: pfFade 0.3s 1.33s forwards">4.8x its own scalar</text>
+
+<text x="216" y="256" text-anchor="end" class="pf-label">Rust four wide, safe</text>
+<rect class="pf-bar" x="226" y="240" width="83" height="22" rx="4" fill="#4a8ccc" style="animation: pfGrow 0.6s 0.77s forwards"/>
+<text class="pf-a" x="321" y="257" fill="#e2e2e2" font-size="11" font-weight="600" style="animation: pfFade 0.3s 1.37s forwards">0.135</text>
+<text class="pf-a" x="385" y="257" font-size="10" fill="#888" style="animation: pfFade 0.3s 1.47s forwards">3.6x its own scalar, no unsafe</text>
+
+<text x="30" y="300" class="pf-label pf-a" style="animation: pfFade 0.5s 1.7s forwards">Neither compiler widened the loop on its own. The hand restructure is the whole result,</text>
+<text x="30" y="314" class="pf-label pf-a" style="animation: pfFade 0.5s 1.7s forwards">and it is worth roughly 4x to whoever writes it.</text>
+</svg>
