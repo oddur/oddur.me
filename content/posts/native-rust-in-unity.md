@@ -18,7 +18,7 @@ The more durable argument is memory. In every run, on every runtime, the Rust en
 Your C# does not run as C#. Something turns it into instructions the processor understands, and Unity has more than one something.
 
 - **Mono** translates your code while the game runs, a piece at a time, the first time each piece is needed. That is what a JIT compiler is: a translator that works during the performance rather than before it.
-- **IL2CPP** does the translating before you ship, converting your C# into C++ and handing that to a normal C++ compiler.
+- **IL2CPP** does the translating before you ship: it converts your C# into C++ and hands that to a normal C++ compiler.
 - **CoreCLR** is the runtime modern .NET uses, and Unity has an experimental backend for it. A JIT like Mono but twenty years newer, it recompiles hot code once it has watched the program run. This is the one that changes the answer.
 - **Burst** compiles a restricted flavor of C# into native code through LLVM, the same compiler machinery behind Rust and Clang.
 - **Rust** is the one from the intro: native code before you ship, and no restrictions on what you can write.
@@ -33,7 +33,7 @@ The managed runtimes let you write anything and attach a collector. Burst remove
 
 ## Where Burst starts to hurt
 
-Burst is a fast lane, and fast lanes have vehicle restrictions. Your data has to be flat arrays of [blittable](https://learn.microsoft.com/en-us/dotnet/standard/native-interop/blittable-and-non-blittable-types) values, meaning types laid out the same way in managed and native memory, so integers, floats and structs of them. Nothing can grow while a parallel job runs. Containers cannot hold other containers.
+Burst is a fast lane, and fast lanes have vehicle restrictions. Your data has to be flat arrays of [blittable](https://learn.microsoft.com/en-us/dotnet/standard/native-interop/blittable-and-non-blittable-types) values: types laid out the same way in managed and native memory, so integers, floats and structs of them. Nothing can grow while a parallel job runs. Containers cannot hold other containers.
 
 For a loop that multiplies a million floats, none of that is a problem, and Burst will beat anything you write by hand. The trouble starts with code whose natural shape is not a flat array.
 
@@ -69,7 +69,7 @@ Native.ai_score(ref needs[0], ref chars[0], chars.Length,
                 ref outAction[0], ref outScore[0]);
 ```
 
-You do not need `NativeArray` for this. A plain managed array of blittable values is the same flat block of memory, just living on the C# heap, and passing a reference to its first element pins it in place for the duration of the call. Every number in this post comes from ordinary `float[]` and struct arrays crossing the boundary that way. The pointer is only valid until the call returns: hand the addresses over, let Rust finish, read the results out of the same buffers. `NativeArray` earns its place when a buffer has to outlive the call or be shared with a Burst job, not at the boundary itself.
+You do not need `NativeArray` for this. A plain managed array of blittable values is the same flat block of memory, just on the C# heap. A reference to its first element pins it in place for the duration of the call. Every number in this post comes from ordinary `float[]` and struct arrays crossing the boundary that way. The pointer is only valid until the call returns: hand the addresses over, let Rust finish, read the results out of the same buffers. `NativeArray` earns its place when a buffer has to outlive the call or be shared with a Burst job, not at the boundary itself.
 
 {{< animsvg src="/images/posts/rust-unity/ffi-boundary.svg" alt="C# passes three addresses across the P/Invoke boundary. The managed heap is drawn as one contiguous block of memory with the needs, scorers and results arrays as ranges inside it, and Rust's three slices each point at the start of their range. Rust writes the results range in place and returns a single status code" >}}
 
@@ -102,22 +102,22 @@ The call itself costs tens of nanoseconds. When the work behind it takes microse
 
 One rule applies at this edge: a Rust panic must not reach it, because a panic crossing `extern "C"` aborts the whole player with no Unity error log. Catch it at the boundary with `std::panic::catch_unwind` and turn it into the error code C# already checks.
 
-How you hand the arrays over matters. Declare a parameter as an array and you are asking the runtime to manage the crossing: Mono runs its marshaller on every call, and here that costs 0.165 milliseconds against a total in the 0.4 to 0.5 range. Declare it as a reference to the first element and you are passing a single address, so the cost is the same whether the array holds ten floats or ten million. Same memory, same function, still ordinary safe C#, and on Mono a third of the budget is decided by the signature. The newer runtimes recognize blittable arrays and skip the marshaller either way.
+How you hand the arrays over matters. Declare a parameter as an array and you are asking the runtime to manage the crossing. Mono runs its marshaller on every call, and here that costs 0.165 milliseconds against a total in the 0.4 to 0.5 range. Declare it as a reference to the first element and you are passing a single address, so the cost is the same whether the array holds ten floats or ten million. Same memory, same function, still ordinary safe C#, and on Mono a third of the budget is decided by the signature. The newer runtimes recognize blittable arrays and skip the marshaller either way.
 
 ```csharp
 static extern int ai_score(float[] needs, ...);   // Mono marshals the array: +0.165 ms per call
 static extern int ai_score(ref float needs, ...); // pins it and passes the address: free
 ```
 
-None of this is specific to Rust. Any language that can build a C-compatible library can stand on the other side of the boundary, and C++ would work the same way. This post reaches for Rust because the point of leaving managed code is taking manual control of memory, and Rust lets you do that without a new class of crashes.
+None of this is specific to Rust. Any language that can build a C-compatible library can stand on the other side of the boundary, and C++ works the same way. This post reaches for Rust because the point of leaving managed code is taking manual control of memory, and Rust lets you do that without a new class of crashes.
 
-It is not a new pattern either. In the browser this is the Rust-to-WebAssembly story: JavaScript keeps the orchestration and a compiled module takes the hot loop, which is how Mozilla [sped up its source-map library](https://hacks.mozilla.org/2018/01/oxidizing-source-maps-with-rust-and-webassembly/), how Prime Video [runs its UI engine on low-powered devices](https://www.amazon.science/blog/how-prime-video-updates-its-app-for-more-than-8-000-device-types), and how 1Password [ships its core inside a browser extension](https://1password.com/blog/1password-8-the-story-so-far). The Unity version gets a cheaper boundary, though. WebAssembly runs in its own linear memory, so the JavaScript side usually pays a copy on the way in, where P/Invoke hands over addresses into the same address space and Rust reads the heap in place.
+It is not a new pattern either. In the browser this is the Rust-to-WebAssembly story: JavaScript keeps the orchestration and a compiled module takes the hot loop. That is how Mozilla [sped up its source-map library](https://hacks.mozilla.org/2018/01/oxidizing-source-maps-with-rust-and-webassembly/), how Prime Video [runs its UI engine on low-powered devices](https://www.amazon.science/blog/how-prime-video-updates-its-app-for-more-than-8-000-device-types), and how 1Password [ships its core inside a browser extension](https://1password.com/blog/1password-8-the-story-so-far). The Unity version gets a cheaper boundary, though. WebAssembly runs in its own linear memory, so the JavaScript side usually pays a copy on the way in. P/Invoke hands over addresses in the same address space, and Rust reads the heap in place.
 
 ## Getting it onto every platform
 
 The benchmark ran on one machine, but I have shipped this pattern to Windows, macOS, Linux, Android and iOS.
 
-Four of those are the same story with a different file extension. The crate builds as a `cdylib`, which is a `.dll` on Windows, a `.dylib` on macOS and a `.so` on Linux and Android, and the result goes into `Assets/Plugins`. Android needs one build per ABI. iOS is the exception. Embedded dynamic frameworks have been legal since iOS 8, but a loose `.dylib` is not something the App Store accepts, and [Unity's iOS pipeline assumes a static library](https://stunlock.gg/posts/il2cpp_dynamic_linker_errors/) anyway. So the crate builds as a `staticlib`, Unity links it into the player, and the `DllImport` name becomes `__Internal` behind a `#if UNITY_IOS`.
+Four of those are the same story with a different file extension. The crate builds as a `cdylib`, which is a `.dll` on Windows, a `.dylib` on macOS and a `.so` on Linux and Android, and the result goes into `Assets/Plugins`. Android needs one build per ABI. iOS is the exception. Embedded dynamic frameworks became legal in iOS 8, but a loose `.dylib` is not something the App Store accepts, and [Unity's iOS pipeline assumes a static library](https://stunlock.gg/posts/il2cpp_dynamic_linker_errors/) anyway. So the crate builds as a `staticlib`, Unity links it into the player, and the `DllImport` name becomes `__Internal` behind a `#if UNITY_IOS`.
 
 You do not have to write that C# side by hand. [csbindgen](https://github.com/Cysharp/csbindgen) reads the Rust exports and generates the `DllImport` declarations and matching structs on every build, and its `csharp_dll_name_if` option emits the iOS conditional. Both crates in the repository generate their bindings this way, and the Unity players consume the generated files. The `ref`-style declarations shown earlier stay hand-written on purpose, because the safe call style and the marshalling comparison are demonstrations. Generation removes the real hazard at an FFI boundary: add a field on one side, forget it on the other, and nothing complains, you just start reading the wrong bytes.
 
@@ -127,7 +127,7 @@ None of this is much work, but it is work, and it is the part Burst genuinely sa
 
 Two things change about your day once a Rust library is in the project, and neither shows up in a benchmark.
 
-**The editor holds on to the library.** Unity loads a native plugin on first use and never unloads it, so picking up a new Rust build usually means restarting the editor. Burst recompiles in place. This is the cost you feel most if you iterate on the native side all day, and it pushes the work toward the crate's own tests: `cargo test` runs in seconds, and the editor round-trip is saved for integration.
+**The editor holds on to the library.** Unity loads a native plugin on first use and never unloads it, so picking up a new Rust build usually means restarting the editor. Burst recompiles in place. This is the cost you feel most if you iterate on the native side all day. It pushes the work toward the crate's own tests: `cargo test` runs in seconds, and the editor round-trip is saved for integration.
 
 **Rayon and Unity's job system do not know about each other.** Left alone, rayon sizes its pool to every core in the machine, and Unity's workers assume the same cores are theirs. Two schedulers fighting over eighteen cores is how you get a smooth benchmark and a stuttering game. Cap the pool once at startup, which is what the repository's `ai_init_threads` is for, and treat the thread count as part of your frame budget rather than a default.
 
@@ -139,9 +139,9 @@ The workload is the utility AI from earlier. Two hundred characters each conside
 
 {{< animsvg src="/images/posts/rust-unity/utility-anatomy.svg" alt="One character with its needs as bars feeds one action holding six scorers. Each scorer shows its response curve shape, linear, quadratic, logistic or gaussian, its input and its weight. The scorer outputs multiply into one score, one of a thousand, and the highest wins" >}}
 
-That is 1,200,000 scorer evaluations per tick, reading from 160 KB of scorer and action data, which is just past this chip's 128 KB first-level cache and well inside the second. Both sides split the characters across the same six threads, Rust through rayon and C# through `Parallel.For`.
+That is 1,200,000 scorer evaluations per tick against 160 KB of scorer and action data, just past this chip's 128 KB first-level cache and well inside the second. Both sides split the characters across the same six threads, Rust through rayon and C# through `Parallel.For`.
 
-Both sides stay in safe code: no `unsafe` in the Rust, no `Unsafe.*` in the C#. The C# is an interface with a class per curve, what you would find in a real codebase:
+Both sides stay in safe code: no `unsafe` in the Rust, no `Unsafe.*` in the C#. The C# is an interface with a class per curve, what you find in a real codebase:
 
 ```csharp
 public interface IScorer
@@ -182,7 +182,7 @@ fn curve_enum(c: &Curve, x: f32) -> f32 {
 }
 ```
 
-Neither is a translation of the other, which is the point: each language doing this job the way its own practitioners would.
+Neither is a translation of the other, which is the point: each language does this job the way its own practitioners write it.
 
 The idiomatic C# is also not the slow choice. On Unity's CoreCLR it beats a hand-flattened version with a switch statement, 1.158 milliseconds against 1.327, because the JIT watches which implementation turns up at each call site and compiles the indirection away. On Mono and IL2CPP the switch wins by a lot. That is a property of the newer JIT rather than of C#, and worth knowing before hand-flattening anything.
 
@@ -190,9 +190,9 @@ The idiomatic C# is also not the slow choice. On Unity's CoreCLR it beats a hand
 
 A benchmark where one side is tuned and the other is not measures the author, not the languages. The C# engine in this benchmark got 35% faster after it received the same flat data layout the Rust side already had, and none of that 35% had anything to do with the language. The rest was measurement error: the machine, the warm-up, a stray counter in the timed loop.
 
-So both engines are held to a procedure. They must do provably identical work: 200 characters × 1,000 actions × 6 scorers, every time, by construction. Every run checks that both languages pick the same action and score for all two hundred characters before it reports a time, bit-identical in the console check mode and to 1e-5 inside the players. Any optimization that wins on one side is only a hypothesis for the other until it has been tried there. The stopping rule is the profile going flat, not the number getting satisfying. The full protocol is in [the repository](https://github.com/oddur/blog-unityrust).
+So both engines are held to a procedure. They must do provably identical work: 200 characters × 1,000 actions × 6 scorers, every time, by construction. Every run checks that both languages pick the same action and score for all two hundred characters before it reports a time, bit-identical in the console check mode and to 1e-5 inside the players. Any optimization that wins on one side is only a hypothesis for the other until the other side tries it. The stopping rule is the profile going flat, not the number getting satisfying. The full protocol is in [the repository](https://github.com/oddur/blog-unityrust).
 
-Three measurement details matter. This chip has six performance cores and twelve efficiency ones, so work spread across all eighteen swung by a factor of four between runs, and everything here is capped to six threads. Managed code needs a warm-up: the tiered JIT runs up to 25% slow over the first couple of hundred batches while it recompiles the hot code, so every number is the median of warm back-to-back batches with the early ones discarded. And nothing is compared across processes: Rust and C# are timed in the same program on the same data, with the identical native library landing within 2% across all six managed hosts as the control.
+Three measurement details matter. This chip has six performance cores and twelve efficiency ones, so work spread across all eighteen swung by a factor of four between runs, and everything here is capped to six threads. Managed code needs a warm-up: the tiered JIT runs up to 25% slow over the first couple of hundred batches while it recompiles the hot code. Every number is therefore the median of warm back-to-back batches, with the early ones discarded. And nothing is compared across processes: Rust and C# are timed in the same program on the same data, with the identical native library landing within 2% across all six managed hosts as the control.
 
 ## The results
 
@@ -220,13 +220,13 @@ So the scorer was measured four ways, in the same IL2CPP player configuration on
 
 The first thing that chart says is that **neither compiler vectorized anything on its own**. Burst's pitch is that it finds the loops and widens them for you. Here it did not: written as ordinary scalar code inside a Burst job, it ran at 0.703 ms. Rust was no better, with five vector instructions in the whole scoring function and all of them register moves. The four-way branch on the response curve is what stops both.
 
-That matches my experience with Burst beyond this benchmark. The promise is auto-vectorization out of the box, and in practice it delivers inconsistently: you write the code, check the Burst Inspector to see what the compiler actually produced, adjust, and check again, until the vectorizer finally emits the SIMD you were after. You end up wrestling an abstraction layer that sits between you and instructions you already know you want, reaching the goal through trial and error rather than by stating it. In Rust, with the right crate, you state it: the SIMD operations compile to the instructions they name, exactly where you put them, with no translation layer to persuade.
+That matches my experience with Burst beyond this benchmark. The promise is auto-vectorization out of the box, and in practice it delivers inconsistently. You write the code, check the Burst Inspector to see what the compiler produced, adjust, and check again, until the vectorizer emits the SIMD you were after. You end up wrestling an abstraction layer that sits between you and instructions you already know you want. You reach the goal through trial and error rather than by stating it. In Rust, with the right crate, you state it: the SIMD operations compile to the instructions they name, exactly where you put them, with no translation layer to persuade.
 
-Getting the roughly 4x meant writing the lanes by hand on both sides, and the trick is not the obvious one. Four scorers in a register fails, because each can be a different curve, so every lane would compute all four kinds and discard three. What works is four *characters*, who share one scorer and therefore one curve and one set of constants.
+Getting the roughly 4x meant writing the lanes by hand on both sides, and the trick is not the obvious one. Four scorers in a register fails, because each can be a different curve, so every lane computes all four kinds and discards three. What works is four *characters*, who share one scorer and therefore one curve and one set of constants.
 
 {{< animsvg src="/images/posts/burst/simd-lanes.svg" alt="Left: four scorers in one register, each a different curve kind, so every lane must compute all four and discard three. Right: four characters in one register, all sharing one scorer and one curve, so one branch serves four results" >}}
 
-Once both sides are written that way, Rust comes out about 8% ahead. The vector engines validate like everything else, with one difference: a vector `exp` reorders float arithmetic, so their scores match the scalar reference to within 3e-8 rather than to the bit, and every character still picks the same action.
+Once both sides are written that way, Rust comes out about 8% ahead. The vector engines validate like everything else, with one difference. A vector `exp` reorders float arithmetic, so the scores match the scalar reference to within 3e-8 rather than to the bit. Every character still picks the same action.
 
 The Rust version is also **safe code**. Stable Rust does not ship `std::simd` yet, and the crate you pick matters: the popular `wide` made this loop 37% slower than scalar, because its wrapper type spills every broadcast to the stack. The [`fearless_simd`](https://crates.io/crates/fearless_simd) crate reaches the real instructions safely, with no `unsafe` anywhere in the engine. And it is recognizably the `curve_enum` from the benchmark section, gone four wide:
 
@@ -246,7 +246,7 @@ fn curve_fs<S: Simd>(s: S, cv: &Curve, x: f32x4<S>) -> f32x4<S> {
 }
 ```
 
-That is a normal `match` on a normal data-carrying enum, running once and serving all four lanes. Around it sit a `&[ScorerEnum]` slice and rayon on the outer loop, none of which can exist inside a Burst job.
+That is a normal `match` on a normal data-carrying enum. It runs once and serves all four lanes. Around it sit a `&[ScorerEnum]` slice and rayon on the outer loop, none of which can exist inside a Burst job.
 
 SIMD in Rust is a type you reach for in one expression. Burst is a mode you enter, and entering it means the rewrite from earlier: no interfaces, no `List`, no closures and no managed strings. You cannot allocate on the managed heap either, because Burst code runs outside the runtime's control.
 
@@ -262,13 +262,13 @@ The C# side allocates 4 to 13 kilobytes per batch. The scoring engine is not res
 
 Incremental collection does what it promises, three to four times as many collections, each smaller. Here it moved the median by 1 to 7% and barely touched the tail, because the workload does not allocate enough for the collector to become the tail. Systems that allocate more per frame will see a different trade.
 
-This workload was built to be allocation-light, so this is close to the best case for the managed side. The worst case is the one every Unity developer has already met: a system that allocates per entity per frame, and a collection that arrives in the middle of one.
+This workload was built to be allocation-light, so this is close to the best case for the managed side. The worst case is the one every Unity developer already knows: a system that allocates per entity per frame, and a collection that arrives in the middle of one.
 
 ## What this adds up to
 
-If a system is eating your frame budget, moving it to Rust costs about a dozen lines of interop and a build step. What you get back:
+If a system eats your frame budget, the move to Rust costs about a dozen lines of interop and a build step. What you get back:
 
-- **Speed on the runtimes games actually ship on.** 6.4x over Mono and 4.7x over IL2CPP today, settling at 2.3x once Unity's CoreCLR future arrives.
+- **Speed on the runtimes games actually ship on.** 6.4x over Mono and 4.7x over IL2CPP today, and 2.3x once Unity's CoreCLR future arrives.
 - **A higher ceiling when you need it.** Hand-written SIMD in safe Rust beats Burst by 8 to 13% on this workload, without giving up interfaces, collections or allocation to get there.
 - **A system the garbage collector cannot touch.** Zero bytes allocated, zero collections, on every runtime, by construction rather than by discipline.
 - **Code that outlives the engine.** The same library runs in the game, in a .NET service, and on a server with no engine at all, and its tests run without opening an editor.
