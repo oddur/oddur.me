@@ -50,7 +50,7 @@ This approach is not without precedent. RAD Game Tools has [Oodle Network Compre
 
 We had a problem: every time we released a new version of the game, all players had to redownload the whole thing. When we're updating rapidly, this becomes a real nuisance for players who sometimes have to download the full game every day.
 
-What we wanted was for players to only download the data that changed between versions. Patching instead of full downloads.
+What we wanted was for players to only download the data that changed between versions.
 
 Remarkably, we found ourselves using zstd with custom dictionaries again, but this time as a [patching engine](https://github.com/facebook/zstd/wiki/Zstandard-as-a-patching-engine).
 
