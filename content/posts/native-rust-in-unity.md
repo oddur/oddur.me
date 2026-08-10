@@ -100,7 +100,7 @@ pub unsafe extern "C" fn ai_score(
 
 The call itself costs tens of nanoseconds. When the work behind it takes microseconds, the boundary rounds to nothing.
 
-That fixed cost is also why you ask for a lot at once. The benchmark scores all two hundred characters in one call rather than making two hundred calls. The expensive pattern in a game is not one big request, it is a thin trickle of tiny ones spread across the frame.
+That fixed cost is also why you ask for a lot at once. The benchmark scores all two hundred characters in one call rather than making two hundred calls.
 
 There is one trap. Declaring the parameters as arrays makes Mono run its array marshaller on every call, which on this workload costs 0.165 milliseconds against a total of 0.39. Passing a reference to the first element instead removes it completely and is still ordinary safe C#. The other runtimes do not care either way, so on Mono this is nearly half your budget hidden in a signature.
 
