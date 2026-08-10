@@ -195,7 +195,7 @@ That matches my experience with Burst beyond this benchmark. The promise is auto
 
 Getting the roughly 4x meant writing the lanes by hand on both sides, and the trick is not the obvious one. Four scorers in a register fails, because each can be a different curve, so every lane computes all four kinds and discards three. What works is four *characters*, who share one scorer and therefore one curve and one set of constants.
 
-{{< animsvg src="/images/posts/burst/simd-lanes.svg" alt="Left: four scorers in one register, each a different curve kind, so every lane must compute all four and discard three. Right: four characters in one register, all sharing one scorer and one curve, so one branch serves four results" >}}
+{{< animsvg src="/images/posts/burst/simd-lanes.svg" alt="Animated comparison scoring the same eight characters with the same scorer. The scalar side fills one character per pass and takes eight passes. The four-wide side fills a register of four characters per pass and is done in two, because the lanes share one scorer and its curve and constants" >}}
 
 Once both sides are written that way, Rust comes out about 8% ahead. The vector engines validate like everything else, with one difference. A vector `exp` reorders float arithmetic, so the scores match the scalar reference to within 3e-8 rather than to the bit. Every character still picks the same action.
 

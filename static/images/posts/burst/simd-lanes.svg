@@ -1,57 +1,82 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 430">
 <style>
     text { font-family: system-ui, -apple-system, sans-serif; }
     .pf-title { font-size: 14px; font-weight: 600; fill: #e2e2e2; }
     .pf-label { font-size: 11px; fill: #a0a0a0; }
     .pf-small { font-size: 10px; fill: #888; }
-    .pf-cell { font-size: 10px; fill: #e2e2e2; }
     .pf-head { font-size: 12px; font-weight: 600; }
     .pf-a { opacity: 0; }
     @keyframes pfFade { to { opacity: 1; } }
+    @keyframes pfFill { 0% { opacity: 0; } 60% { opacity: 1; } 100% { opacity: 0.85; } }
+    .pf-c { opacity: 0; }
 </style>
-<rect width="720" height="420" fill="#1a1a2e" rx="8"/>
-<text x="30" y="34" class="pf-title">Which four things go in the register</text>
-<text x="30" y="54" class="pf-small">the lanes have to want the same operation, so the choice of axis decides whether it works at all</text>
+<rect width="720" height="430" fill="#1a1a2e" rx="8"/>
+<text x="30" y="34" class="pf-title">The same eight characters, scored one at a time and four at a time</text>
+<text x="30" y="54" class="pf-small">both sides run the same scorer; watch which side finishes first</text>
 
-<g class="pf-a" style="animation: pfFade 0.4s 0.30s forwards">
-<rect x="30" y="76" width="320" height="300" rx="8" fill="#20203a"/>
-<text x="190" y="102" text-anchor="middle" class="pf-head" fill="#c44e7c">four scorers</text>
-<text x="190" y="120" text-anchor="middle" class="pf-small">one character, four scorers side by side</text>
-
-<rect x="52" y="138" width="276" height="26" rx="4" fill="#c44e7c" fill-opacity="0.16"/>
-<text x="66" y="155" class="pf-cell">lane 0</text><text x="130" y="155" class="pf-cell" fill="#c44e7c">linear</text>
-<rect x="52" y="170" width="276" height="26" rx="4" fill="#c44e7c" fill-opacity="0.16"/>
-<text x="66" y="187" class="pf-cell">lane 1</text><text x="130" y="187" class="pf-cell" fill="#d18238">gaussian</text>
-<rect x="52" y="202" width="276" height="26" rx="4" fill="#c44e7c" fill-opacity="0.16"/>
-<text x="66" y="219" class="pf-cell">lane 2</text><text x="130" y="219" class="pf-cell" fill="#9668d4">logistic</text>
-<rect x="52" y="234" width="276" height="26" rx="4" fill="#c44e7c" fill-opacity="0.16"/>
-<text x="66" y="251" class="pf-cell">lane 3</text><text x="130" y="251" class="pf-cell" fill="#46a866">quadratic</text>
-
-<text x="190" y="290" text-anchor="middle" class="pf-small" fill="#c44e7c">four different curves in one register</text>
-<text x="190" y="310" text-anchor="middle" class="pf-small">every lane must compute all four kinds,</text>
-<text x="190" y="326" text-anchor="middle" class="pf-small">then throw three of them away</text>
-<text x="190" y="352" text-anchor="middle" class="pf-cell" fill="#c44e7c">4x the arithmetic for 4x the lanes</text>
+<!-- ============ LEFT: scalar ============ -->
+<g class="pf-a" style="animation: pfFade 0.4s 0.2s forwards">
+<rect x="30" y="70" width="320" height="316" rx="8" fill="#20203a"/>
+<text x="190" y="94" text-anchor="middle" class="pf-head" fill="#c77730">scalar: one character per pass</text>
+<rect x="90" y="106" width="200" height="24" rx="12" fill="none" stroke="#9668d4" stroke-width="1.5"/>
+<path d="M 104 126 C 114 126 115 111 128 111" fill="none" stroke="#9668d4" stroke-width="2" stroke-linecap="round"/>
+<text x="140" y="122" class="pf-small" fill="#e2e2e2">hunger, logistic × 0.9</text>
 </g>
 
-<g class="pf-a" style="animation: pfFade 0.4s 0.85s forwards">
-<rect x="370" y="76" width="320" height="300" rx="8" fill="#20203a"/>
-<text x="530" y="102" text-anchor="middle" class="pf-head" fill="#4a8ccc">four characters</text>
-<text x="530" y="120" text-anchor="middle" class="pf-small">one scorer, four characters side by side</text>
+<!-- scalar chips: fill one by one -->
+<g class="pf-a" style="animation: pfFade 0.3s 0.4s forwards">
+<rect x="70" y="142" width="240" height="20" rx="3" fill="#26263e" stroke="#333"/><text x="80" y="156" class="pf-small">char 0</text><text x="300" y="156" text-anchor="end" class="pf-small">hunger 0.7</text>
+<rect x="70" y="169" width="240" height="20" rx="3" fill="#26263e" stroke="#333"/><text x="80" y="183" class="pf-small">char 1</text><text x="300" y="183" text-anchor="end" class="pf-small">hunger 0.2</text>
+<rect x="70" y="196" width="240" height="20" rx="3" fill="#26263e" stroke="#333"/><text x="80" y="210" class="pf-small">char 2</text><text x="300" y="210" text-anchor="end" class="pf-small">hunger 0.9</text>
+<rect x="70" y="223" width="240" height="20" rx="3" fill="#26263e" stroke="#333"/><text x="80" y="237" class="pf-small">char 3</text><text x="300" y="237" text-anchor="end" class="pf-small">hunger 0.4</text>
+<rect x="70" y="250" width="240" height="20" rx="3" fill="#26263e" stroke="#333"/><text x="80" y="264" class="pf-small">char 4</text><text x="300" y="264" text-anchor="end" class="pf-small">hunger 0.6</text>
+<rect x="70" y="277" width="240" height="20" rx="3" fill="#26263e" stroke="#333"/><text x="80" y="291" class="pf-small">char 5</text><text x="300" y="291" text-anchor="end" class="pf-small">hunger 0.3</text>
+<rect x="70" y="304" width="240" height="20" rx="3" fill="#26263e" stroke="#333"/><text x="80" y="318" class="pf-small">char 6</text><text x="300" y="318" text-anchor="end" class="pf-small">hunger 0.8</text>
+<rect x="70" y="331" width="240" height="20" rx="3" fill="#26263e" stroke="#333"/><text x="80" y="345" class="pf-small">char 7</text><text x="300" y="345" text-anchor="end" class="pf-small">hunger 0.5</text>
+</g>
+<rect class="pf-c" x="70" y="142" width="240" height="20" rx="3" fill="#c77730" fill-opacity="0.45" style="animation: pfFill 0.35s 0.8s forwards"/>
+<rect class="pf-c" x="70" y="169" width="240" height="20" rx="3" fill="#c77730" fill-opacity="0.45" style="animation: pfFill 0.35s 1.2s forwards"/>
+<rect class="pf-c" x="70" y="196" width="240" height="20" rx="3" fill="#c77730" fill-opacity="0.45" style="animation: pfFill 0.35s 1.6s forwards"/>
+<rect class="pf-c" x="70" y="223" width="240" height="20" rx="3" fill="#c77730" fill-opacity="0.45" style="animation: pfFill 0.35s 2.0s forwards"/>
+<rect class="pf-c" x="70" y="250" width="240" height="20" rx="3" fill="#c77730" fill-opacity="0.45" style="animation: pfFill 0.35s 2.4s forwards"/>
+<rect class="pf-c" x="70" y="277" width="240" height="20" rx="3" fill="#c77730" fill-opacity="0.45" style="animation: pfFill 0.35s 2.8s forwards"/>
+<rect class="pf-c" x="70" y="304" width="240" height="20" rx="3" fill="#c77730" fill-opacity="0.45" style="animation: pfFill 0.35s 3.2s forwards"/>
+<rect class="pf-c" x="70" y="331" width="240" height="20" rx="3" fill="#c77730" fill-opacity="0.45" style="animation: pfFill 0.35s 3.6s forwards"/>
+<text class="pf-a" x="190" y="376" text-anchor="middle" fill="#c77730" font-size="11" font-weight="600" style="animation: pfFade 0.4s 4.0s forwards">8 passes</text>
 
-<rect x="392" y="138" width="276" height="26" rx="4" fill="#4a8ccc" fill-opacity="0.16"/>
-<text x="406" y="155" class="pf-cell">lane 0</text><text x="470" y="155" class="pf-cell" fill="#4a8ccc">linear</text><text x="546" y="155" class="pf-small">hunger 0.7</text>
-<rect x="392" y="170" width="276" height="26" rx="4" fill="#4a8ccc" fill-opacity="0.16"/>
-<text x="406" y="187" class="pf-cell">lane 1</text><text x="470" y="187" class="pf-cell" fill="#4a8ccc">linear</text><text x="546" y="187" class="pf-small">hunger 0.2</text>
-<rect x="392" y="202" width="276" height="26" rx="4" fill="#4a8ccc" fill-opacity="0.16"/>
-<text x="406" y="219" class="pf-cell">lane 2</text><text x="470" y="219" class="pf-cell" fill="#4a8ccc">linear</text><text x="546" y="219" class="pf-small">hunger 0.9</text>
-<rect x="392" y="234" width="276" height="26" rx="4" fill="#4a8ccc" fill-opacity="0.16"/>
-<text x="406" y="251" class="pf-cell">lane 3</text><text x="470" y="251" class="pf-cell" fill="#4a8ccc">linear</text><text x="546" y="251" class="pf-small">hunger 0.4</text>
-
-<text x="530" y="290" text-anchor="middle" class="pf-small" fill="#4a8ccc">one curve, one branch, four results</text>
-<text x="530" y="310" text-anchor="middle" class="pf-small">the switch stays scalar and serves all four,</text>
-<text x="530" y="326" text-anchor="middle" class="pf-small">only the per-character data goes wide</text>
-<text x="530" y="352" text-anchor="middle" class="pf-cell" fill="#4a8ccc">4x the work in 1x the time</text>
+<!-- ============ RIGHT: four wide ============ -->
+<g class="pf-a" style="animation: pfFade 0.4s 0.2s forwards">
+<rect x="370" y="70" width="320" height="316" rx="8" fill="#20203a"/>
+<text x="530" y="94" text-anchor="middle" class="pf-head" fill="#4a8ccc">four wide: one register per pass</text>
+<rect x="430" y="106" width="200" height="24" rx="12" fill="none" stroke="#9668d4" stroke-width="1.5"/>
+<path d="M 444 126 C 454 126 455 111 468 111" fill="none" stroke="#9668d4" stroke-width="2" stroke-linecap="round"/>
+<text x="480" y="122" class="pf-small" fill="#e2e2e2">hunger, logistic × 0.9</text>
 </g>
 
-<text x="30" y="400" class="pf-label pf-a" style="animation: pfFade 0.5s 1.4s forwards">Four characters share an action and a scorer, so the curve and all its constants are identical across the lanes.</text>
+<g class="pf-a" style="animation: pfFade 0.3s 0.4s forwards">
+<rect x="406" y="138" width="252" height="115" rx="5" fill="none" stroke="#4a8ccc" stroke-opacity="0.45" stroke-dasharray="4 3"/>
+<text x="664" y="200" class="pf-small" fill="#4a8ccc" transform="rotate(90 664 200)" text-anchor="middle">one register</text>
+<rect x="410" y="142" width="240" height="20" rx="3" fill="#26263e" stroke="#333"/><text x="420" y="156" class="pf-small">char 0</text><text x="640" y="156" text-anchor="end" class="pf-small">hunger 0.7</text>
+<rect x="410" y="169" width="240" height="20" rx="3" fill="#26263e" stroke="#333"/><text x="420" y="183" class="pf-small">char 1</text><text x="640" y="183" text-anchor="end" class="pf-small">hunger 0.2</text>
+<rect x="410" y="196" width="240" height="20" rx="3" fill="#26263e" stroke="#333"/><text x="420" y="210" class="pf-small">char 2</text><text x="640" y="210" text-anchor="end" class="pf-small">hunger 0.9</text>
+<rect x="410" y="223" width="240" height="20" rx="3" fill="#26263e" stroke="#333"/><text x="420" y="237" class="pf-small">char 3</text><text x="640" y="237" text-anchor="end" class="pf-small">hunger 0.4</text>
+<rect x="406" y="273" width="252" height="109" rx="5" fill="none" stroke="#4a8ccc" stroke-opacity="0.45" stroke-dasharray="4 3"/>
+<rect x="410" y="277" width="240" height="20" rx="3" fill="#26263e" stroke="#333"/><text x="420" y="291" class="pf-small">char 4</text><text x="640" y="291" text-anchor="end" class="pf-small">hunger 0.6</text>
+<rect x="410" y="304" width="240" height="20" rx="3" fill="#26263e" stroke="#333"/><text x="420" y="318" class="pf-small">char 5</text><text x="640" y="318" text-anchor="end" class="pf-small">hunger 0.3</text>
+<rect x="410" y="331" width="240" height="20" rx="3" fill="#26263e" stroke="#333"/><text x="420" y="345" class="pf-small">char 6</text><text x="640" y="345" text-anchor="end" class="pf-small">hunger 0.8</text>
+<rect x="410" y="358" width="240" height="20" rx="3" fill="#26263e" stroke="#333"/><text x="420" y="372" class="pf-small">char 7</text><text x="640" y="372" text-anchor="end" class="pf-small">hunger 0.5</text>
+</g>
+
+<rect class="pf-c" x="410" y="142" width="240" height="20" rx="3" fill="#4a8ccc" fill-opacity="0.5" style="animation: pfFill 0.35s 0.8s forwards"/>
+<rect class="pf-c" x="410" y="169" width="240" height="20" rx="3" fill="#4a8ccc" fill-opacity="0.5" style="animation: pfFill 0.35s 0.8s forwards"/>
+<rect class="pf-c" x="410" y="196" width="240" height="20" rx="3" fill="#4a8ccc" fill-opacity="0.5" style="animation: pfFill 0.35s 0.8s forwards"/>
+<rect class="pf-c" x="410" y="223" width="240" height="20" rx="3" fill="#4a8ccc" fill-opacity="0.5" style="animation: pfFill 0.35s 0.8s forwards"/>
+<rect class="pf-c" x="410" y="277" width="240" height="20" rx="3" fill="#4a8ccc" fill-opacity="0.5" style="animation: pfFill 0.35s 1.2s forwards"/>
+<rect class="pf-c" x="410" y="304" width="240" height="20" rx="3" fill="#4a8ccc" fill-opacity="0.5" style="animation: pfFill 0.35s 1.2s forwards"/>
+<rect class="pf-c" x="410" y="331" width="240" height="20" rx="3" fill="#4a8ccc" fill-opacity="0.5" style="animation: pfFill 0.35s 1.2s forwards"/>
+<rect class="pf-c" x="410" y="358" width="240" height="20" rx="3" fill="#4a8ccc" fill-opacity="0.5" style="animation: pfFill 0.35s 1.2s forwards"/>
+<text class="pf-a" x="530" y="264" text-anchor="middle" fill="#4a8ccc" font-size="11" font-weight="600" style="animation: pfFade 0.4s 1.6s forwards">2 passes, done</text>
+
+<text x="30" y="410" class="pf-label pf-a" style="animation: pfFade 0.5s 4.2s forwards">The lanes must share the operation. Four characters share one scorer, so its curve and constants are the</text>
+<text x="30" y="424" class="pf-label pf-a" style="animation: pfFade 0.5s 4.2s forwards">same in every lane. Four different scorers share nothing, so that axis cannot go in a register.</text>
 </svg>
