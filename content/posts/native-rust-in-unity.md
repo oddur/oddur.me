@@ -7,21 +7,21 @@ tags = ['rust', 'unity', 'ffi', 'performance', 'benchmarks']
 ShowToc = true
 TocOpen = true
 +++
-Unity gives you several ways to turn C# into machine code, and one more that nobody advertises: a Rust library, called from C# over the same pointers Burst already uses.
+Unity gives you several ways to turn C# into machine code. This post is about one it does not ship: a Rust library, called from C# over the same pointers Burst already uses.
 
-It works, it is about a dozen lines of interop, and on the Mono that Unity desktop games ship on by default it runs a game AI workload 6.4 times faster. Against IL2CPP it is 4.7 times faster, and against Unity's experimental CoreCLR backend and plain .NET 10 about 2.3 times.
+The interop is about a dozen lines. On the Mono that Unity desktop games ship by default, the same game AI workload runs 6.4 times faster in Rust. Against IL2CPP it is 4.7 times faster, and against Unity's experimental CoreCLR backend and plain .NET 10 about 2.3 times.
 
 The more durable argument is memory. In every run, on every runtime, the Rust engine allocated zero bytes and the collector never touched it. A collector cannot walk memory it cannot see, and that stays true however good the runtime gets.
 
 ## The roads to machine code
 
-Your C# does not run as C#. Something turns it into instructions the processor understands, and Unity has more than one something.
+Your C# does not run as C#. Something has to turn it into machine code first, and Unity offers several options.
 
-- **Mono** translates your code while the game runs, a piece at a time, the first time each piece is needed. That is what a JIT compiler is: a translator that works during the performance rather than before it.
-- **IL2CPP** does the translating before you ship: it converts your C# into C++ and hands that to a normal C++ compiler.
-- **CoreCLR** is the runtime modern .NET uses, and Unity has an experimental backend for it. A JIT like Mono but twenty years newer, it recompiles hot code once it has watched the program run. This is the one that changes the answer.
+- **Mono** compiles your code while the game runs, a piece at a time, the first time each piece is needed.
+- **IL2CPP** compiles ahead of time: it converts your C# into C++ and hands that to a normal C++ compiler.
+- **CoreCLR** is the runtime modern .NET uses, and Unity has an experimental backend for it. A JIT like Mono but twenty years newer, it recompiles hot code once it has watched the program run.
 - **Burst** compiles a restricted flavor of C# into native code through LLVM, the same compiler machinery behind Rust and Clang.
-- **Rust** is the one from the intro: native code before you ship, and no restrictions on what you can write.
+- **Rust** is the one this post adds: native code before you ship, and no restrictions on what you can write.
 
 The first three are *managed*, which means a garbage collector owns your memory. You never free anything. Instead, every so often, the collector walks through everything you have allocated, works out what is still in use, and throws away the rest. While it works, your game waits.
 
@@ -47,7 +47,7 @@ That rewrite is the price of entry, and the restriction follows every helper the
 
 Burst is fast partly *because* it works on raw pointers into plain native memory, and those pointers are not secret.
 
-A pointer is an address, not the thing itself. Telling someone the address of a house does not move the house. When Unity gives you a `NativeArray`, it hands you a block of ordinary memory with a safety wrapper around it. Burst compiles down to code that reads and writes that block directly by address.
+A `NativeArray` is a block of ordinary memory with a safety wrapper around it, and Burst compiles down to code that reads and writes that block directly by address.
 
 C# can pass those same addresses to a native library through P/Invoke. The only requirement is that the data is blittable, the same constraint Burst already puts on anything you hand a job.
 
@@ -109,19 +109,19 @@ static extern int ai_score(float[] needs, ...);   // Mono marshals the array: +0
 static extern int ai_score(ref float needs, ...); // pins it and passes the address: free
 ```
 
-None of this is specific to Rust. Any language that can build a C-compatible library can stand on the other side of the boundary, and C++ works the same way. This post reaches for Rust because the point of leaving managed code is taking manual control of memory, and Rust lets you do that without a new class of crashes.
+None of this is specific to Rust. Any language that can build a C-compatible library can stand on the other side of the boundary, and C++ works the same way. This post uses Rust because the point of leaving managed code is taking manual control of memory, and Rust lets you do that without a new class of crashes.
 
-It is not a new pattern either. In the browser this is the Rust-to-WebAssembly story: JavaScript keeps the orchestration and a compiled module takes the hot loop. That is how Mozilla [sped up its source-map library](https://hacks.mozilla.org/2018/01/oxidizing-source-maps-with-rust-and-webassembly/), how Prime Video [runs its UI engine on low-powered devices](https://www.amazon.science/blog/how-prime-video-updates-its-app-for-more-than-8-000-device-types), and how 1Password [ships its core inside a browser extension](https://1password.com/blog/1password-8-the-story-so-far). The Unity version gets a cheaper boundary, though. WebAssembly runs in its own linear memory, so the JavaScript side usually pays a copy on the way in. P/Invoke hands over addresses in the same address space, and Rust reads the heap in place.
+It is not a new pattern either. In the browser it is Rust compiled to WebAssembly: JavaScript keeps the orchestration and a compiled module takes the hot loop. That is how Mozilla [sped up its source-map library](https://hacks.mozilla.org/2018/01/oxidizing-source-maps-with-rust-and-webassembly/), how Prime Video [runs its UI engine on low-powered devices](https://www.amazon.science/blog/how-prime-video-updates-its-app-for-more-than-8-000-device-types), and how 1Password [ships its core inside a browser extension](https://1password.com/blog/1password-8-the-story-so-far). The Unity version gets a cheaper boundary, though. WebAssembly runs in its own linear memory, so the JavaScript side usually pays a copy on the way in. P/Invoke hands over addresses in the same address space, and Rust reads the heap in place.
 
 ## Getting it onto every platform
 
 The benchmark ran on one machine, but I have shipped this pattern to Windows, macOS, Linux, Android and iOS.
 
-Four of those are the same story with a different file extension. The crate builds as a `cdylib`, which is a `.dll` on Windows, a `.dylib` on macOS and a `.so` on Linux and Android, and the result goes into `Assets/Plugins`. Android needs one build per ABI. iOS is the exception. Embedded dynamic frameworks became legal in iOS 8, but a loose `.dylib` is not something the App Store accepts, and [Unity's iOS pipeline assumes a static library](https://stunlock.gg/posts/il2cpp_dynamic_linker_errors/) anyway. So the crate builds as a `staticlib`, Unity links it into the player, and the `DllImport` name becomes `__Internal` behind a `#if UNITY_IOS`.
+Four of those differ only by file extension. The crate builds as a `cdylib`, which is a `.dll` on Windows, a `.dylib` on macOS and a `.so` on Linux and Android, and the result goes into `Assets/Plugins`. Android needs one build per ABI. iOS is the exception. Embedded dynamic frameworks became legal in iOS 8, but a loose `.dylib` is not something the App Store accepts, and [Unity's iOS pipeline assumes a static library](https://stunlock.gg/posts/il2cpp_dynamic_linker_errors/) anyway. So the crate builds as a `staticlib`, Unity links it into the player, and the `DllImport` name becomes `__Internal` behind a `#if UNITY_IOS`.
 
 You do not have to write that C# side by hand. [csbindgen](https://github.com/Cysharp/csbindgen) reads the Rust exports and generates the `DllImport` declarations and matching structs on every build, and its `csharp_dll_name_if` option emits the iOS conditional. Both crates in the repository generate their bindings this way, and the Unity players consume the generated files. The `ref`-style declarations shown earlier stay hand-written on purpose, because the safe call style and the marshalling comparison are demonstrations. Generation removes the real hazard at an FFI boundary: add a field on one side, forget it on the other, and nothing complains, you just start reading the wrong bytes.
 
-None of this is much work, but it is work, and it is the part Burst genuinely saves you.
+None of this is much work, but it is work, and it is the part Burst saves you.
 
 ## Living with it
 
@@ -184,7 +184,7 @@ fn curve_enum(c: &Curve, x: f32) -> f32 {
 
 Neither is a translation of the other, which is the point: each language does this job the way its own practitioners write it.
 
-The idiomatic C# is also not the slow choice. On Unity's CoreCLR it beats a hand-flattened version with a switch statement, 1.158 milliseconds against 1.327, because the JIT watches which implementation turns up at each call site and compiles the indirection away. On Mono and IL2CPP the switch wins by a lot. That is a property of the newer JIT rather than of C#, and worth knowing before hand-flattening anything.
+The idiomatic C# is also not the slow choice. On Unity's CoreCLR it beats a hand-flattened version with a switch statement, 1.158 milliseconds against 1.327, because the JIT watches which implementation turns up at each call site and compiles the indirection away. On Mono and IL2CPP the switch wins by a lot. That is a property of the newer JIT rather than of C#. Know which runtime you are on before you hand-flatten anything.
 
 ## Making the comparison fair
 
@@ -198,13 +198,13 @@ Three measurement details matter. This chip has six performance cores and twelve
 
 {{< animsvg src="/images/posts/rust-unity/utility-results.svg" alt="Bar chart of the utility AI scorer across six runtimes: Rust 0.49 ms on every runtime, Mono C# 3.15 at 6.4x, Mono incremental 3.20, IL2CPP 2.30 at 4.7x, IL2CPP incremental 2.32, Unity CoreCLR 1.16 at 2.3x, standalone .NET 10 1.13 at 2.3x" >}}
 
-Read the chart downward and the story is about runtime age as much as language. Mono is a twenty-year-old JIT and loses by 6.4x. IL2CPP compiles ahead of time and loses by 4.7x. CoreCLR, a modern JIT with profile-guided optimization, loses by 2.3x, and plain .NET 10, the closest thing to Unity's future, lands in the same place.
+Read the chart downward: the gap tracks runtime age as much as language. Mono is a twenty-year-old JIT and loses by 6.4x. IL2CPP compiles ahead of time and loses by 4.7x. CoreCLR, a modern JIT with profile-guided optimization, loses by 2.3x, and plain .NET 10, the closest thing to Unity's future, matches it.
 
 The gap shrinks as the runtime modernizes and stops at 2.3x: that is what remains after the runtime has caught up.
 
 ## What about SIMD?
 
-Everything above compares Rust against C#. Burst is the other answer. It is free, it ships with the engine, and on this workload it is genuinely fast: at its best, the same scorer in a Burst job runs at 0.147 ms against the plain C#'s 2.30.
+Everything above compares Rust against C#. Burst is the other answer. It is free, it ships with the engine, and it is fast: at its best, the same scorer in a Burst job runs at 0.147 ms against the plain C#'s 2.30.
 
 So the question is whether Rust can match that. It can, in safe code, and it comes out ahead.
 
