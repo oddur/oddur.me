@@ -109,7 +109,7 @@ static extern int ai_score(float[] needs, ...);   // Mono marshals the array: +0
 static extern int ai_score(ref float needs, ...); // pins it and passes the address: free
 ```
 
-None of this is specific to Rust. Any language that can build a C-compatible library can stand on the other side of the boundary, and one already does: the Unity engine itself is native code behind exactly this kind of interface, and every engine call your C# makes crosses it. C++ would work the same way. This post reaches for Rust because the point of leaving managed code is taking manual control of memory, and Rust is the language where doing that by hand does not open the door to a new class of crashes.
+None of this is specific to Rust. Any language that can build a C-compatible library can stand on the other side of the boundary, and one already does: the Unity engine itself is C++ behind a managed-to-native boundary of the same nature, and your C# crosses it every time it touches a transform. C++ would work the same way here. This post reaches for Rust because the point of leaving managed code is taking manual control of memory, and Rust lets you do that without opening the door to a new class of crashes.
 
 ## Getting it onto every platform
 
