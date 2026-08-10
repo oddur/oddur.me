@@ -175,7 +175,7 @@ The gap shrinks as the runtime modernizes and stops at 2.3x: that is what remain
 
 ## What about SIMD?
 
-Everything above compares Rust against C#. Unity's own answer for hot code is Burst. It is free, it ships with the engine, and it is fast: at its best, the same scorer in a Burst job runs at 0.147 ms against the plain C#'s 2.30.
+Everything above compares Rust against C#. Unity's own answer for hot code is Burst. It is free, it ships with the engine, and it is fast: the same scorer in a Burst job runs at 0.147 ms against the plain C#'s 2.30.
 
 So the question is whether Rust can match that. It can, in safe code, and it comes out ahead.
 
@@ -185,7 +185,7 @@ Burst's speed comes from SIMD, so first, what that is. A processor normally work
 
 It is not free speed. The four numbers have to sit together and they all have to want the same operation. The moment the code asks a question about one and not the others, it falls back to scalar.
 
-So the scorer was measured four ways, in the same IL2CPP player configuration on the same six threads. Each language appears twice: once written normally, one score at a time, and once with the four-at-a-time version written by hand. The Burst rows use `Unity.Mathematics` and its `float4` type (0.147 ms with the same hand-written `exp` the Rust engine uses, 0.154 with stock `math.exp`). The Rust rows are the enum engine and a four-wide rewrite of it.
+So the scorer was measured four ways, in the same IL2CPP player configuration on the same six threads. Each language appears twice: once written normally, one score at a time, and once with the four-at-a-time version written by hand. The Burst rows use `Unity.Mathematics` and its `float4` type. The Rust rows are the enum engine and a four-wide rewrite of it.
 
 {{< animsvg src="/images/posts/rust-unity/simd-results.svg" alt="Bar chart in two groups. Written normally: Rust scalar 0.491 ms, Burst scalar 0.703. Hand-written four wide: Burst float4 0.147 at 4.8x its own scalar, Rust four wide safe 0.135 at 3.6x its own scalar with no unsafe" >}}
 
@@ -197,9 +197,9 @@ Getting the roughly 4x meant writing the lanes by hand on both sides, and the tr
 
 {{< animsvg src="/images/posts/burst/simd-lanes.svg" alt="Animated comparison scoring the same eight characters with the same scorer. The scalar side fills one character per pass and takes eight passes. The four-wide side fills a register of four characters per pass and is done in two, because the lanes share one scorer and its curve and constants" >}}
 
-Once both sides are written that way, Rust comes out about 8% ahead. The vector engines validate like everything else, with one difference. A vector `exp` reorders float arithmetic, so the scores match the scalar reference to within 3e-8 rather than to the bit. Every character still picks the same action.
+Once both sides are written that way, Rust comes out about 8% ahead, and every character still picks the same action as the scalar engines.
 
-The Rust version is also **safe code**. Stable Rust does not ship `std::simd` yet, and the crate you pick matters: the popular `wide` made this loop 37% slower than scalar, because its wrapper type spills every broadcast to the stack. The [`fearless_simd`](https://crates.io/crates/fearless_simd) crate reaches the real instructions safely, with no `unsafe` anywhere in the engine. And it is recognizably the `curve_enum` from the benchmark section, gone four wide:
+The Rust version is also **safe code**. Stable Rust does not ship `std::simd` yet, but the [`fearless_simd`](https://crates.io/crates/fearless_simd) crate reaches the real instructions safely, with no `unsafe` anywhere in the engine. And it is recognizably the `curve_enum` from the benchmark section, gone four wide:
 
 ```rust
 fn curve_fs<S: Simd>(s: S, cv: &Curve, x: f32x4<S>) -> f32x4<S> {
