@@ -41,7 +41,7 @@ Take the system this post benchmarks, a utility AI, the pattern game characters 
 
 {{< animsvg src="/images/posts/rust-unity/burst-rewrite.svg" alt="Left: the natural C#, an IScorer interface with four curve classes under it and an IScorer array, where a new curve is one new class, and Burst rejects all of it. Right: what Burst accepts, a flat struct with a byte curve tag and a switch over four cases, where a new curve is a new case in every switch" >}}
 
-That rewrite is the price of entry, and the restriction follows every helper the job calls. It also removes the extension point: a new curve was a new class, and becomes a new case in a switch every caller pays for. Facing that is the moment to notice there is another road.
+That rewrite is the price of entry, and the restriction follows every helper the job calls. It also removes the extension point: a new curve was a new class, and becomes a new case in a switch every caller pays for.
 
 ## The same pointers Burst uses
 
