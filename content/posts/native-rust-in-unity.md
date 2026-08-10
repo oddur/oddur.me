@@ -102,7 +102,7 @@ The call itself costs tens of nanoseconds. When the work behind it takes microse
 
 That fixed cost is also why you ask for a lot at once. The benchmark scores all two hundred characters in one call rather than making two hundred calls.
 
-There is one trap. Declaring the parameters as arrays makes Mono run its array marshaller on every call, which on this workload costs 0.165 milliseconds against a total of 0.39. Passing a reference to the first element instead removes it completely and is still ordinary safe C#. The other runtimes do not care either way, so on Mono this is nearly half your budget hidden in a signature.
+How you hand the arrays over matters, and the difference is measurable. Declare a parameter as an array and you are asking the runtime to manage the crossing: Mono runs its marshaller on every call, work that scales with the data and costs 0.165 milliseconds on this workload's 0.39 total. Declare it as a reference to the first element and you are passing a single address, so the cost is the same whether the array holds ten floats or ten million. Same memory, same function, still ordinary safe C#, and on Mono nearly half the budget is decided by the signature. The newer runtimes recognize blittable arrays and skip the marshaller either way.
 
 ```csharp
 static extern int ai_score(float[] needs, ...);   // Mono marshals the array: +0.165 ms per call
