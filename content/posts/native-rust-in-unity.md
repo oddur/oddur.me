@@ -9,7 +9,7 @@ TocOpen = true
 +++
 Unity gives you several ways to turn C# into machine code. This post is about one it does not ship: a Rust library, called from C# over the same pointers Burst already uses.
 
-The interop is about a dozen lines. On the Mono that Unity desktop games ship by default, the same game AI workload runs 6.4 times faster in Rust. Against IL2CPP it is 4.7 times faster, and against Unity's experimental CoreCLR backend and plain .NET 10 about 2.3 times.
+The interop is about a dozen lines. On the Mono that Unity desktop games ship by default, a game AI workload runs 6.4 times faster in Rust. Against IL2CPP it is 4.7 times faster, and against Unity's experimental CoreCLR backend and plain .NET 10 about 2.3 times.
 
 The more durable argument is memory. In every run, on every runtime, the Rust engine allocated zero bytes and the collector never touched it. A collector cannot walk memory it cannot see, and that stays true however good the runtime gets.
 
@@ -33,7 +33,7 @@ The managed runtimes let you write anything and attach a collector. Burst remove
 
 ## Where Burst starts to hurt
 
-Burst comes with restrictions. Your data has to be flat arrays of [blittable](https://learn.microsoft.com/en-us/dotnet/standard/native-interop/blittable-and-non-blittable-types) values: types laid out the same way in managed and native memory, so integers, floats and structs of them. Nothing can grow while a parallel job runs. Containers cannot hold other containers.
+Burst comes with restrictions: your data has to be flat arrays of [blittable](https://learn.microsoft.com/en-us/dotnet/standard/native-interop/blittable-and-non-blittable-types) values: types laid out the same way in managed and native memory, so integers, floats and structs of them. Nothing can grow while a parallel job runs. Containers cannot hold other containers.
 
 For a loop that multiplies a million floats, none of that is a problem, and Burst will beat anything you write by hand. The trouble starts with code whose natural shape is not a flat array.
 
@@ -110,7 +110,7 @@ The workload is the utility AI from earlier: two hundred characters, a thousand 
 
 {{< animsvg src="/images/posts/rust-unity/utility-anatomy.svg" alt="One character with its needs as bars feeds one action holding six scorers. Each scorer shows its response curve shape, linear, quadratic, logistic or gaussian, its input and its weight. The scorer outputs multiply into one score, one of a thousand, and the highest wins" >}}
 
-That is 1,200,000 scorer evaluations per tick against 160 KB of scorer and action data, just past this chip's 128 KB first-level cache and well inside the second. Both sides split the characters across the same six threads, Rust through rayon and C# through `Parallel.For`.
+That is 1,200,000 scorer evaluations per tick against 160 KB of scorer and action data, just past the test machine's 128 KB first-level cache and well inside the second. Both sides split the characters across the same six threads, Rust through rayon and C# through `Parallel.For`.
 
 Both sides stay in safe code: no `unsafe` in the Rust, no `Unsafe.*` in the C#. The C# is an interface with a class per curve, what you find in a real codebase:
 
@@ -193,7 +193,7 @@ The first thing that chart says is that **neither compiler vectorized anything o
 
 That matches my experience with Burst beyond this benchmark. The promise is auto-vectorization out of the box, and in practice it delivers inconsistently. You write the code, check the Burst Inspector to see what the compiler produced, adjust, and check again, until the vectorizer emits the SIMD you were after. You end up wrestling an abstraction layer that sits between you and instructions you already know you want, and you reach the goal by trial and error rather than by stating it. In Rust, with the right crate, you state it: the SIMD operations compile to the instructions they name, exactly where you put them, with no translation layer to persuade.
 
-Getting the roughly 4x meant writing the lanes by hand on both sides, and the trick is not the obvious one. Four scorers in a register fails, because each can be a different curve, so every lane computes all four kinds and discards three. What works is four *characters*, who share one scorer and therefore one curve and one set of constants.
+The four-wide versions had to be written by hand on both sides, and the trick is not the obvious one. Four scorers in a register fails, because each can be a different curve, so every lane computes all four kinds and discards three. What works is four *characters*, who share one scorer and therefore one curve and one set of constants.
 
 {{< animsvg src="/images/posts/burst/simd-lanes.svg" alt="Animated comparison scoring the same eight characters with the same scorer. The scalar side fills one character per pass and takes eight passes. The four-wide side fills a register of four characters per pass and is done in two, because the lanes share one scorer and its curve and constants" >}}
 
