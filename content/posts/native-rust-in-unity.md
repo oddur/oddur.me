@@ -13,7 +13,7 @@ The interop is about a dozen lines. On the Mono that Unity desktop games ship by
 
 The more durable argument is memory. In every run, on every runtime, the Rust engine allocated zero bytes and the collector never touched it. A collector cannot walk memory it cannot see, and that stays true however good the runtime gets.
 
-## The roads to machine code
+## How your C# becomes machine code
 
 Your C# does not run as C#. Something has to turn it into machine code first, and Unity offers several options.
 
@@ -31,7 +31,7 @@ The last two have no collector. Burst avoids one by forbidding you to allocate t
 
 The managed runtimes let you write anything and attach a collector. Burst removes the collector and takes away most of the language. Rust removes the collector and keeps the language.
 
-## Where Burst starts to hurt
+## What Burst makes you rewrite
 
 Burst comes with restrictions: your data has to be flat arrays of [blittable](https://learn.microsoft.com/en-us/dotnet/standard/native-interop/blittable-and-non-blittable-types) values: types laid out the same way in managed and native memory, so integers, floats and structs of them. Nothing can grow while a parallel job runs. Containers cannot hold other containers.
 
@@ -43,7 +43,7 @@ Take the system this post benchmarks, a utility AI, the pattern game characters 
 
 That rewrite is the price of entry, and the restriction follows every helper the job calls. It also removes the extension point: a new curve was a new class, and becomes a new case in a switch every caller pays for.
 
-## The same pointers Burst uses
+## A dozen lines of interop
 
 Burst is fast partly *because* it works on raw pointers into plain native memory. A `NativeArray` is a block of ordinary memory with a safety wrapper around it, and Burst compiles down to code that reads and writes that block directly by address.
 
@@ -104,7 +104,7 @@ None of this is specific to Rust. Any language that can build a C-compatible lib
 
 It is not a new pattern either. In the browser it is Rust compiled to WebAssembly: JavaScript keeps the orchestration and a compiled module takes the hot loop. That is how Mozilla [sped up its source-map library](https://hacks.mozilla.org/2018/01/oxidizing-source-maps-with-rust-and-webassembly/), how Prime Video [runs its UI engine on low-powered devices](https://www.amazon.science/blog/how-prime-video-updates-its-app-for-more-than-8-000-device-types), and how 1Password [ships its core inside a browser extension](https://1password.com/blog/1password-8-the-story-so-far). The Unity version gets a cheaper boundary, though. WebAssembly runs in its own linear memory, so the JavaScript side usually pays a copy on the way in. P/Invoke hands over addresses in the same address space, and Rust reads the heap in place.
 
-## The benchmark
+## The benchmark: a utility AI
 
 The workload is the utility AI from earlier: two hundred characters, a thousand candidate actions each, six scorers per action.
 
@@ -165,7 +165,7 @@ Both implementations are held to the same standard. They must do provably identi
 
 Three measurement details matter. This chip has six performance cores and twelve efficiency ones, so work spread across all eighteen swung by a factor of four between runs, and everything here is capped to six threads. Managed code needs a warm-up: the tiered JIT runs up to 25% slow over the first couple of hundred batches while it recompiles the hot code. Every number is therefore the median of warm back-to-back batches, with the early ones discarded. And nothing is compared across processes: Rust and C# are timed in the same program on the same data, with the identical native library landing within 2% across all six managed hosts as the control.
 
-## The results
+## The results, runtime by runtime
 
 {{< animsvg src="/images/posts/rust-unity/utility-results.svg" alt="Bar chart of the utility AI scorer across six runtimes: Rust 0.49 ms on every runtime, Mono C# 3.15 at 6.4x, Mono incremental 3.20, IL2CPP 2.30 at 4.7x, IL2CPP incremental 2.32, Unity CoreCLR 1.16 at 2.3x, standalone .NET 10 1.13 at 2.3x" >}}
 
@@ -173,7 +173,7 @@ Read the chart downward: the gap tracks runtime age as much as language. Mono is
 
 The gap shrinks as the runtime modernizes and stops at 2.3x: that is what remains after the runtime has caught up.
 
-## What about SIMD?
+## Beating Burst with safe SIMD
 
 Everything above compares Rust against C#. Unity's own answer for hot code is Burst. It is free, it ships with the engine, and it is fast: the same scorer in a Burst job runs at 0.147 ms against the plain C#'s 2.30.
 
@@ -223,7 +223,7 @@ SIMD in Rust is a type you reach for in one expression. Burst is a mode you ente
 
 If you have already laid your data out flat to feed a Burst job, you have done the work needed to hand it to Rust. That layout is not a Burst tax or a Rust tax. It is the cost of caring about performance at all, and the hand-flattened C# ended up with the same flat arrays without either compiler asking. What differs is what you are allowed to write around it.
 
-## Allocations and garbage collection
+## Zero allocations, zero collections
 
 Over a thousand batches on every runtime, the Rust engine allocated zero bytes and triggered zero collections. That is not a tuning result, it is structural: Rust's memory is invisible to Unity's collector, so there is nothing for it to walk.
 
@@ -235,7 +235,7 @@ Incremental collection does what it promises, three to four times as many collec
 
 This workload was built to be allocation-light, so it is close to the best case for the managed side. The worst case is the one every Unity developer already knows: a system that allocates per entity per frame, and a collection that arrives in the middle of one.
 
-## Getting it onto every platform
+## Shipping it to every platform
 
 The benchmark ran on one machine, but I have shipped this pattern to Windows, macOS, Linux, Android and iOS. The crate builds as a `cdylib`, which is a `.dll`, `.dylib` or `.so` depending on the platform, and the result goes into `Assets/Plugins`. iOS wants a `staticlib` linked into the player instead, with the `DllImport` name set to `__Internal`.
 
