@@ -98,7 +98,7 @@ pub unsafe extern "C" fn ai_score(
 
 One rule applies at this edge: a Rust panic must not reach it, because a panic crossing `extern "C"` aborts the whole player with no Unity error log. Catch it at the boundary with `std::panic::catch_unwind` and turn it into the error code C# already checks.
 
-The call itself costs tens of nanoseconds. When the work behind it takes microseconds, the boundary rounds to nothing. That fixed cost is also why you ask for a lot at once: the benchmark scores all two hundred characters in one call rather than making two hundred calls.
+The call itself costs tens of nanoseconds. When the work behind it takes microseconds, the boundary is a rounding error. That fixed cost is also why you ask for a lot at once: the benchmark scores all two hundred characters in one call rather than making two hundred calls.
 
 None of this is specific to Rust. Any language that can build a C-compatible library can stand on the other side of the boundary, and C++ works the same way. This post uses Rust because the point of leaving managed code is taking manual control of memory, and Rust lets you do that without a new class of crashes.
 
@@ -183,7 +183,7 @@ Burst's speed comes from SIMD, so first, what that is. A processor normally work
 
 {{< animsvg src="/images/posts/burst/simd-wide.svg" alt="Top: four multiplies done one after another in four steps. Bottom: the same four operands packed into three registers and multiplied in one step" >}}
 
-It is not free speed. The four numbers have to sit together and they all have to want the same operation. The moment the code asks a question about one and not the others, it falls back to scalar.
+There are conditions. The four numbers have to sit together and they all have to want the same operation. The moment the code asks a question about one and not the others, it falls back to scalar.
 
 So the scorer was measured four ways, in the same IL2CPP player configuration on the same six threads. Each language appears twice: once written normally, one score at a time, and once with the four-at-a-time version written by hand. The Burst rows use `Unity.Mathematics` and its `float4` type. The Rust rows are the enum engine and a four-wide rewrite of it.
 
@@ -217,7 +217,7 @@ fn curve_fs<S: Simd>(s: S, cv: &Curve, x: f32x4<S>) -> f32x4<S> {
 }
 ```
 
-That is a normal `match` on a normal data-carrying enum. It runs once and serves all four lanes. Around it sit a `&[ScorerEnum]` slice and rayon on the outer loop, none of which can exist inside a Burst job.
+That is an ordinary `match` on a data-carrying enum. It runs once and serves all four lanes. Around it sit a `&[ScorerEnum]` slice and rayon on the outer loop, none of which can exist inside a Burst job.
 
 SIMD in Rust is a type you reach for in one expression. Burst is a mode you enter, and entering it means the rewrite from earlier. It also means no allocation: Burst code runs outside the runtime's control, so the managed heap is out of reach.
 
@@ -233,7 +233,7 @@ The C# side allocates 4 to 13 kilobytes per batch. The scoring engine is not res
 
 Incremental collection does what it promises, three to four times as many collections, each smaller. Here it moved the median by 1 to 7% and barely touched the tail, because the workload does not allocate enough for the collector to become the tail. Systems that allocate more per frame will see a different trade.
 
-This workload was built to be allocation-light, so this is close to the best case for the managed side. The worst case is the one every Unity developer already knows: a system that allocates per entity per frame, and a collection that arrives in the middle of one.
+This workload was built to be allocation-light, so it is close to the best case for the managed side. The worst case is the one every Unity developer already knows: a system that allocates per entity per frame, and a collection that arrives in the middle of one.
 
 ## Getting it onto every platform
 
